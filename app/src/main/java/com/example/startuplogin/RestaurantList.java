@@ -17,6 +17,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.startuplogin.DB.AppDatabase;
+import com.example.startuplogin.DB.Cart;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -28,6 +31,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class RestaurantList extends AppCompatActivity implements SearchView.OnQueryTextListener, androidx.appcompat.widget.SearchView.OnQueryTextListener {
 
@@ -42,6 +46,9 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
     FloatingActionButton listFloatAddBtn;
     ProgressDialog startDialog;
     String currentUEmail;
+    String currentUId;
+    BottomNavigationView bottomNavigationView;
+    Button viewCartBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +56,7 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
         setContentView(R.layout.activity_restaurant_list);
 
         init();
+        checkCart();
 
         currentUEmail = mAuth.getCurrentUser().getEmail();
 
@@ -122,11 +130,9 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
 
                     if (!currentUEmail.equals("smartadmin@gmail.com")) {
                         listFloatAddBtn.setVisibility(View.INVISIBLE);
-                    }
+                    } else
 
-                    else
-
-                    listFloatAddBtn.setVisibility(View.VISIBLE);
+                        listFloatAddBtn.setVisibility(View.VISIBLE);
 
                     listFloatAddBtn.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -205,6 +211,32 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        checkCart();
+    }
+
+    private void checkCart() {
+
+        AppDatabase appDatabase = AppDatabase.getDbInstance(this);
+        List<Cart> cartList = appDatabase.cartDao().getAllItemsOfCurrentUser(currentUId);
+        if (!cartList.isEmpty()) {
+            bottomNavigationView.setVisibility(View.VISIBLE);
+
+            viewCartBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent cartDetails = new Intent(RestaurantList.this, CartDetails.class);
+                    startActivity(cartDetails);
+                }
+            });
+        }
+        Log.e("user id ", currentUId);
+        Log.e("cart list ", cartList.toString());
+
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.toolbar_menu, menu);
         MenuItem menuItem = menu.findItem(R.id.menu_search);
@@ -277,5 +309,10 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
         startDialog.setTitle("Please Wait...");
         startDialog.setCancelable(false);
         startDialog.show();
+        bottomNavigationView = findViewById(R.id.BNavigation);
+        viewCartBtn = findViewById(R.id.viewCartBtn);
+
+        if (mAuth.getCurrentUser() != null)
+            currentUId = mAuth.getCurrentUser().getUid();
     }
 }

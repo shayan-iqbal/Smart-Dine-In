@@ -1,5 +1,6 @@
 package com.example.startuplogin;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -46,6 +47,7 @@ public class CatItemAdapter extends RecyclerView.Adapter<CatItemViewHolder> {
                 Intent itemDetailIntent = new Intent(context, ItemDetail.class);
                 itemDetailIntent.putExtra("itemBundle", item);
                 context.startActivity(itemDetailIntent);
+                //((Activity) context).finish();
             }
         });
 

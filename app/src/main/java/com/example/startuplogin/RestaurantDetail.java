@@ -1,7 +1,10 @@
 package com.example.startuplogin;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -10,6 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.startuplogin.DB.AppDatabase;
+import com.example.startuplogin.DB.Cart;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -19,9 +25,10 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
-public class RestaurantDetail extends AppCompatActivity{
+public class RestaurantDetail extends AppCompatActivity {
 
     FirebaseAuth mAuth;
     RecyclerView catListRec;
@@ -36,6 +43,10 @@ public class RestaurantDetail extends AppCompatActivity{
     TextView restNameTv;
     TextView restTypeTv;
     TextView restTableCountTv;
+    String currentUId;
+    BottomNavigationView bottomNavigationView;
+    Button viewCartBtn;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +55,35 @@ public class RestaurantDetail extends AppCompatActivity{
         getSupportActionBar().hide();
 
         init();
+        checkCart();
         getBundle();
         getItems();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        checkCart();
+    }
+
+    private void checkCart() {
+
+        AppDatabase appDatabase = AppDatabase.getDbInstance(this);
+        List<Cart> cartList = appDatabase.cartDao().getAllItemsOfCurrentUser(currentUId);
+        if (!cartList.isEmpty()) {
+            bottomNavigationView.setVisibility(View.VISIBLE);
+
+            viewCartBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent cartDetails = new Intent(RestaurantDetail.this, CartDetails.class);
+                    startActivity(cartDetails);
+                }
+            });
+        }
+        Log.e("user id ", currentUId);
+        Log.e("cart list ", cartList.toString());
+
     }
 
     private void getCatItemsDefault(ArrayList<String> catList) {
@@ -86,7 +124,7 @@ public class RestaurantDetail extends AppCompatActivity{
         catList.clear();
         catList.addAll(listWithoutDuplicates);
         Log.e("cat list ", catList.toString());
-        categoryAdapter = new CategoryAdapter(RestaurantDetail.this, catList );
+        categoryAdapter = new CategoryAdapter(RestaurantDetail.this, catList);
         catListRec.hasFixedSize();
         catListRec.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         catListRec.setAdapter(categoryAdapter);
@@ -161,7 +199,11 @@ public class RestaurantDetail extends AppCompatActivity{
         restTypeTv = findViewById(R.id.restDetailType);
         restTableCountTv = findViewById(R.id.restDetailTable);
         catItemList = new ArrayList<>();
-
+        bottomNavigationView = findViewById(R.id.BNavigation);
+        viewCartBtn = findViewById(R.id.viewCartBtn);
+        mAuth = FirebaseAuth.getInstance();
+        if (mAuth.getCurrentUser() != null)
+            currentUId = mAuth.getCurrentUser().getUid();
     }
 
 

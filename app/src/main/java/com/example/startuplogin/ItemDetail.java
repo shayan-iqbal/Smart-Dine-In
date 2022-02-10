@@ -98,6 +98,7 @@ public class ItemDetail extends AppCompatActivity {
         }
         Log.e("var values ", var1Value + var2Value + var3Value);
 
+        if (check)
         saveCartItem(item, var1Value, var2Value, var3Value);
 
     }

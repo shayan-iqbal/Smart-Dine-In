@@ -11,7 +11,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".CartDetails"></activity>
+        <activity android:name=".PaymentDetails"></activity>
+        <activity android:name=".MainActivity" />
+        <activity android:name=".CartDetails" />
         <activity android:name=".ItemDetail" />
         <activity android:name=".EmptyActivity" />
         <activity android:name=".AddItem" />
@@ -26,7 +28,7 @@
         <activity android:name=".RestaurantList" />
         <activity android:name=".AddRestaurant" />
         <activity android:name=".Signup" />
-        <activity android:name=".MainActivity">
+        <activity android:name=".Payment">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

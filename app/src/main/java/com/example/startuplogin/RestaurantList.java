@@ -33,6 +33,8 @@ import com.google.firebase.database.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
+
 public class RestaurantList extends AppCompatActivity implements SearchView.OnQueryTextListener, androidx.appcompat.widget.SearchView.OnQueryTextListener {
 
     ArrayList<Restaurant> restaurants;
@@ -213,6 +215,24 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
     @Override
     protected void onStart() {
         super.onStart();
+        checkCart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkCart();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        checkCart();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
         checkCart();
     }
 

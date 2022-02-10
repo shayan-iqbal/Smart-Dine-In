@@ -36,7 +36,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference restRef = database.getReference("Restaurant");
     FirebaseAuth mAuth = FirebaseAuth.getInstance();
-    String searchId;
+    static String restId;
     boolean check;
 
     public RestaurantAdapter(ArrayList<Restaurant> restaurants, Context context) {
@@ -58,7 +58,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
 
         //Glide.with(context).load(restaurant.getRestImage()).into(holder.restImageIm);
         final String currentUId = mAuth.getCurrentUser().getEmail();
-
+        restId=restaurant.getRestId();
 
         restRef.addValueEventListener(new ValueEventListener() {
             @Override

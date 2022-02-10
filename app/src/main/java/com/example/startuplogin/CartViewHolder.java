@@ -18,6 +18,7 @@ public class CartViewHolder extends RecyclerView.ViewHolder {
     ImageView plusIm;
     ImageView minusIm;
     TextView quantityTv;
+    ImageView deleteCartImage;
 
     public CartViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -29,5 +30,6 @@ public class CartViewHolder extends RecyclerView.ViewHolder {
         plusIm=itemView.findViewById(R.id.plusQuantity);
         minusIm=itemView.findViewById(R.id.minusQuantity);
         quantityTv=itemView.findViewById(R.id.quantityTv);
+        deleteCartImage=itemView.findViewById(R.id.deleteCartImage);
     }
 }

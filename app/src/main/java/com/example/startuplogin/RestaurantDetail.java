@@ -55,6 +55,7 @@ public class RestaurantDetail extends AppCompatActivity {
         getSupportActionBar().hide();
 
         init();
+
         checkCart();
         getBundle();
         getItems();
@@ -63,6 +64,12 @@ public class RestaurantDetail extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        checkCart();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
         checkCart();
     }
 
@@ -78,6 +85,7 @@ public class RestaurantDetail extends AppCompatActivity {
                 public void onClick(View view) {
                     Intent cartDetails = new Intent(RestaurantDetail.this, CartDetails.class);
                     startActivity(cartDetails);
+                    //finish();
                 }
             });
         }
@@ -163,13 +171,14 @@ public class RestaurantDetail extends AppCompatActivity {
     private void getBundle() {
 
         Bundle bundle = getIntent().getExtras();
-        restId = bundle.getString("restId");
-        getRestaurantDetail(restId);
+        //restId = bundle.getString("restId");
+        restId=RestaurantAdapter.restId;
+        getRestaurantDetail(RestaurantAdapter.restId);
     }
 
     private void getRestaurantDetail(String restId) {
 
-        restRef.child(restId).addListenerForSingleValueEvent(new ValueEventListener() {
+        restRef.child(RestaurantAdapter.restId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String name = snapshot.child("restName").getValue().toString();

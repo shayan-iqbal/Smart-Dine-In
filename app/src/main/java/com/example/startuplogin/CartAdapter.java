@@ -1,6 +1,8 @@
 package com.example.startuplogin;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +19,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
 
     List<Cart> cartList;
     Context context;
+    AppDatabase db;
 
     public CartAdapter(List<Cart> cartList, Context context) {
         this.cartList = cartList;
@@ -32,13 +35,14 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final CartViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final CartViewHolder holder, final int position) {
+        db = AppDatabase.getDbInstance(context);
         final Cart cart = cartList.get(position);
 
         holder.cartItemImage.setImageResource(R.drawable.deal3);
         holder.cartItemName.setText(cart.getItemName());
         holder.cartItemVariation.setText(cart.getMeat() + "," + cart.getFries() + "," + cart.getDrink());
-        holder.cartItemPrice.setText(cart.getItemPrice());
+        holder.cartItemPrice.setText("Rs. "+cart.getItemPrice());
         holder.quantityTv.setText(cart.getQuantity());
 
         holder.plusIm.setOnClickListener(new View.OnClickListener() {
@@ -49,6 +53,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
                 holder.quantityTv.setText(String.valueOf(quantity));
                 AppDatabase db = AppDatabase.getDbInstance(context);
                 db.cartDao().updateCartItem(String.valueOf(quantity), cart.getItemId());
+                CartDetails.setAmount();
             }
         });
         holder.minusIm.setOnClickListener(new View.OnClickListener() {
@@ -60,6 +65,26 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
                     holder.quantityTv.setText(String.valueOf(quantity));
                     AppDatabase db = AppDatabase.getDbInstance(context);
                     db.cartDao().updateCartItem(String.valueOf(quantity), cart.getItemId());
+                    CartDetails.setAmount();
+                }
+            }
+        });
+        holder.deleteCartImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                db.cartDao().deleteCartItem(cart.getItemId());
+                CartDetails.setAmount();
+                cartList.remove(position);
+                notifyItemRemoved(position);
+                notifyDataSetChanged();
+                notifyItemRangeChanged(position, cartList.size());
+
+                if(cartList.isEmpty()){
+                    CartDetails.hideAmountTv();
+                    Intent restDetail=new Intent(context,RestaurantDetail.class);
+                    restDetail.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    context.startActivity(restDetail);
+                    ((Activity) context).finish();
                 }
             }
         });

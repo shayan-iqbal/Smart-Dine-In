@@ -1,8 +1,8 @@
 package com.example.startuplogin;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -11,21 +11,28 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.startuplogin.Config.Config;
-import com.paypal.android.sdk.payments.PayPalConfiguration;
-import com.paypal.android.sdk.payments.PayPalPayment;
-import com.paypal.android.sdk.payments.PayPalService;
-import com.paypal.android.sdk.payments.PaymentActivity;
-import com.paypal.android.sdk.payments.PaymentConfirmation;
+import com.braintreepayments.api.dropin.DropInActivity;
+import com.braintreepayments.api.dropin.DropInRequest;
+import com.braintreepayments.api.dropin.DropInResult;
+import com.braintreepayments.api.models.PaymentMethodNonce;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.RequestParams;
+import com.loopj.android.http.TextHttpResponseHandler;
 
-import java.math.BigDecimal;
+import java.util.HashMap;
+
+import cz.msebera.android.httpclient.Header;
 
 public class Payment extends AppCompatActivity {
     Button payBtn;
     EditText amountEt;
-    public static final int PAYPAL_REQUEST_CODE = 7171;
-    private static PayPalConfiguration payPalConfiguration;
-    private String amount;
+    private String amount, token;
+    final String API_GET_TOKEN = "http://10.0.2.2/braintree/main.php";
+    final String API_CHECKOUT = "http://10.0.2.2/braintree/checkout.php";
+    HashMap<String, String> paramsHash;
+    private final int REQUEST_CODE = 123;
+    private AsyncHttpClient client = new AsyncHttpClient();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,69 +40,83 @@ public class Payment extends AppCompatActivity {
         setContentView(R.layout.activity_payment);
 
         init();
-
-        //Start Paypal service
-        Intent intent = new Intent(this, PayPalService.class);
-        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, payPalConfiguration);
-        startService(intent);
+        getToken();
 
         payBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                processPayment();
+                submitPayment();
             }
         });
     }
 
-    @Override
-    protected void onDestroy() {
-        stopService(new Intent(this, PayPalService.class));
-        super.onDestroy();
+    private void submitPayment() {
+
+        DropInRequest dropInRequest = new DropInRequest().clientToken(token);
+        Toast.makeText(this, "Tokennn " + token, Toast.LENGTH_SHORT).show();
+        startActivityForResult(dropInRequest.getIntent(this), REQUEST_CODE);
     }
 
-    private void processPayment() {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE) {
+            Toast.makeText(this, "request", Toast.LENGTH_SHORT).show();
+            if (resultCode == RESULT_OK) {
+                Toast.makeText(this, "OK", Toast.LENGTH_SHORT).show();
+                DropInResult result = data.getParcelableExtra(DropInResult.EXTRA_DROP_IN_RESULT);
+                PaymentMethodNonce methodNonce = result.getPaymentMethodNonce();
 
-        amount = amountEt.getText().toString();
-        PayPalPayment payment = new PayPalPayment(new BigDecimal(String.valueOf(amount)), "USD", "Pay For Smart Dine IN", PayPalPayment.PAYMENT_INTENT_SALE);
-        Intent intent = new Intent(Payment.this, PaymentActivity.class);
-        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, payPalConfiguration);
-        intent.putExtra(PaymentActivity.EXTRA_PAYMENT, payment);
-        startActivityForResult(intent, PAYPAL_REQUEST_CODE);
+
+                if (!amountEt.getText().toString().isEmpty()) {
+
+                    RequestParams requestParams = new RequestParams();
+                    amount = amountEt.getText().toString();
+                    String nonce = methodNonce.getNonce();
+                    requestParams.put("nonce", nonce);
+                    requestParams.put("amount", amount);
+
+                    client.post("http://10.0.2.2/braintree/checkout.php", requestParams, new TextHttpResponseHandler() {
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                            Toast.makeText(Payment.this, responseString, Toast.LENGTH_LONG).show();
+                        }
+
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                            Toast.makeText(Payment.this, responseString, Toast.LENGTH_LONG).show();
+                        }
+                    });
+
+                } else {
+                    Toast.makeText(this, "Please enter valid amount", Toast.LENGTH_SHORT).show();
+                }
+            } else if (resultCode == RESULT_CANCELED) {
+                Toast.makeText(this, "Cancel", Toast.LENGTH_SHORT).show();
+            } else {
+                Exception exception = (Exception) data.getSerializableExtra(DropInActivity.EXTRA_ERROR);
+                Log.d("Exception error ", exception.toString());
+            }
+        }
+    }
+
+    private void getToken() {
+        client.get("http://10.0.2.2/braintree/main.php", new TextHttpResponseHandler() {
+            @Override
+            public void onFailure(int statusCode, cz.msebera.android.httpclient.Header[] headers, String responseString, Throwable throwable) {
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, String responseString) {
+                token = responseString;
+            }
+        });
     }
 
     private void init() {
 
         payBtn = findViewById(R.id.payBtn);
         amountEt = findViewById(R.id.amount);
-        payPalConfiguration = new PayPalConfiguration().environment(PayPalConfiguration.ENVIRONMENT_SANDBOX)
-                .clientId(Config.PAYPAL_CLENT_ID);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PAYPAL_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-                PaymentConfirmation confirmation = data.getParcelableExtra(PaymentActivity.EXTRA_RESULT_CONFIRMATION);
-                if (confirmation != null) {
-                    try {
-                        String paymentDetails = confirmation.toJSONObject().toString();
-                        startActivity(new Intent(this, PaymentDetails.class)
-                                .putExtra("PaymentDetails", paymentDetails)
-                                .putExtra("PaymentAmount", amount)
-
-                        );
-
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            } else if (resultCode == Activity.RESULT_CANCELED)
-                Toast.makeText(this, "Cancel", Toast.LENGTH_SHORT).show();
-        } else if (requestCode == PaymentActivity.RESULT_EXTRAS_INVALID) {
-            Toast.makeText(this, "Invalid ", Toast.LENGTH_SHORT).show();
-        }
-
-    }
 }

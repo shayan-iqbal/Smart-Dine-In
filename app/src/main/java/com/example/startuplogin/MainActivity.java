@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             }
-            Toast.makeText(this, String.valueOf(check), Toast.LENGTH_SHORT).show();
+
 
         }
 

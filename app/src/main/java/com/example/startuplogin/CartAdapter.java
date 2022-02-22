@@ -20,6 +20,13 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
     List<Cart> cartList;
     Context context;
     AppDatabase db;
+    String userType;
+
+    public CartAdapter(List<Cart> cartList, Context context, String userType) {
+        this.cartList = cartList;
+        this.context = context;
+        this.userType = userType;
+    }
 
     public CartAdapter(List<Cart> cartList, Context context) {
         this.cartList = cartList;
@@ -39,10 +46,21 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
         db = AppDatabase.getDbInstance(context);
         final Cart cart = cartList.get(position);
 
+        if (userType != null)
+            if (userType.equals("user")) {
+                holder.quantityTv.setVisibility(View.INVISIBLE);
+                holder.plusIm.setVisibility(View.INVISIBLE);
+                holder.minusIm.setVisibility(View.INVISIBLE);
+                holder.deleteCartImage.setVisibility(View.INVISIBLE);
+                holder.cartItemName.setText(cart.getItemName());
+                holder.cartItemVariation.setText(cart.getMeat() + "," + cart.getFries() + "," + cart.getDrink());
+                holder.cartItemPrice.setText("Rs. " + cart.getItemPrice());
+            }
+
         holder.cartItemImage.setImageResource(R.drawable.deal3);
         holder.cartItemName.setText(cart.getItemName());
         holder.cartItemVariation.setText(cart.getMeat() + "," + cart.getFries() + "," + cart.getDrink());
-        holder.cartItemPrice.setText("Rs. "+cart.getItemPrice());
+        holder.cartItemPrice.setText("Rs. " + cart.getItemPrice());
         holder.quantityTv.setText(cart.getQuantity());
 
         holder.plusIm.setOnClickListener(new View.OnClickListener() {
@@ -79,9 +97,9 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
                 notifyDataSetChanged();
                 notifyItemRangeChanged(position, cartList.size());
 
-                if(cartList.isEmpty()){
+                if (cartList.isEmpty()) {
                     CartDetails.hideAmountTv();
-                    Intent restDetail=new Intent(context,RestaurantDetail.class);
+                    Intent restDetail = new Intent(context, RestaurantDetail.class);
                     restDetail.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     context.startActivity(restDetail);
                     ((Activity) context).finish();

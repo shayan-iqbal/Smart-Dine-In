@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -39,6 +38,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
     static String restId;
     boolean check;
 
+
     public RestaurantAdapter(ArrayList<Restaurant> restaurants, Context context) {
         this.restaurants = restaurants;
         this.context = context;
@@ -58,7 +58,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
 
         //Glide.with(context).load(restaurant.getRestImage()).into(holder.restImageIm);
         final String currentUId = mAuth.getCurrentUser().getEmail();
-        restId=restaurant.getRestId();
+        restId = restaurant.getRestId();
 
         restRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -67,10 +67,11 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                         Restaurant restaurant = dataSnapshot.getValue(Restaurant.class);
                         String email = restaurant.getRestEmail();
-                        if (email.equals(currentUId)) {
-                            check=true;
-                            break;
-                        }
+                        if (email != null)
+                            if (email.equals(currentUId)) {
+                                check = true;
+                                break;
+                            }
                     }
 
                 }
@@ -87,12 +88,22 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent restDetailIntent = new Intent(context,RestaurantDetail.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putString("restId", restaurant.getRestId());
-                    bundle.putString("bundle", "detail");
-                    restDetailIntent.putExtras(bundle);
-                    context.startActivity(restDetailIntent);
+
+                    if(RestaurantList.loginType!=null) {
+                        if (RestaurantList.loginType.equals("manager")) {
+                            Intent itemList = new Intent(context, ItemList.class);
+                            context.startActivity(itemList);
+                        }
+                    }
+                    else {
+                        Toast.makeText(context, RestaurantList.loginType, Toast.LENGTH_SHORT).show();
+                        Intent restDetailIntent = new Intent(context, RestaurantDetail.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putString("restId", restaurant.getRestId());
+                        bundle.putString("bundle", "detail");
+                        restDetailIntent.putExtras(bundle);
+                        context.startActivity(restDetailIntent);
+                    }
                 }
             });
         }

@@ -104,11 +104,13 @@ public class Payment extends AppCompatActivity {
         client.get("http://10.0.2.2/braintree/main.php", new TextHttpResponseHandler() {
             @Override
             public void onFailure(int statusCode, cz.msebera.android.httpclient.Header[] headers, String responseString, Throwable throwable) {
+                Log.e("Failure ",responseString);
             }
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
                 token = responseString;
+                Log.e("success ",responseString);
             }
         });
     }

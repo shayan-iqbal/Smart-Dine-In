@@ -24,6 +24,12 @@ public interface CartDao {
     @Query("DELETE FROM Cart WHERE itemId=:itemId")
     void deleteCartItem(int itemId);
 
+    @Query("DELETE FROM Cart WHERE user_id=:uid")
+    void deleteUserCart(String uid);
+
     @Query("select sum(item_price*item_quantity) from cart where user_id=:uid")
     int countPrice(String uid);
+
+//    @Query("select user_id from Cart ")
+//    String getUserId(String uid);
 }

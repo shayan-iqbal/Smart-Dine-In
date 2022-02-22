@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     String currentRestId;
     ProgressDialog startProgress;
     boolean check;
+    String userType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
             startProgress.show();
             currentUserEmail = mAuth.getCurrentUser().getEmail();
             if (currentUserEmail.equals("smartadmin@gmail.com")) {
+                userType="admin";
                 startProgress.dismiss();
                 Intent addRestIntent = new Intent(MainActivity.this, RestaurantList.class);
                 startActivity(addRestIntent);
@@ -71,11 +73,15 @@ public class MainActivity extends AppCompatActivity {
                             for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                                 Restaurant restaurant = dataSnapshot.getValue(Restaurant.class);
                                 String email = restaurant.getRestEmail();
+                                if(!(email==null))
                                 if (email.equals(loginUserId)) {
                                     check=true;
-                                    Intent addItemIntent = new Intent(MainActivity.this, ItemList.class);
+                                    userType="manager";
+                                    Intent addItemIntent = new Intent(MainActivity.this, RestaurantList.class);
+                                    addItemIntent.putExtra("userType",userType);
                                     startActivity(addItemIntent);
                                     startProgress.dismiss();
+                                    addItemIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                     finish();
                                     break;
                                 } else
@@ -97,11 +103,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             }
-
-
         }
-
-
         setSpinner();
 
         loginBtn.setOnClickListener(new View.OnClickListener() {
@@ -177,7 +179,9 @@ public class MainActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     progressDialog.dismiss();
-                    Intent restDetailIntent = new Intent(MainActivity.this, ItemList.class);
+                    Intent restDetailIntent = new Intent(MainActivity.this, RestaurantList.class);
+                    userType="manager";
+                    restDetailIntent.putExtra("userType",userType);
                     startActivity(restDetailIntent);
                     finish();
                 } else {
@@ -235,7 +239,6 @@ public class MainActivity extends AppCompatActivity {
         progressDialog.setTitle("Uploading Data");
         progressDialog.setMessage("Please Wait...");
         progressDialog.setCancelable(false);
-
         startProgress = new ProgressDialog(this);
         startProgress.setTitle("Please Wait...");
         startProgress.setCancelable(false);

@@ -26,6 +26,9 @@ public class Cart {
     @ColumnInfo(name = "item_quantity")
     String quantity;
 
+    public Cart() {
+    }
+
     public Cart(String userId, String itemName, String itemImage, String itemPrice, String meat, String fries, String drink, String quantity) {
         this.userId = userId;
         this.itemName = itemName;

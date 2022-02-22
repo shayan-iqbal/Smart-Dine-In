@@ -35,6 +35,7 @@ public class Signup extends AppCompatActivity {
     FirebaseDatabase database;
     DatabaseReference reference;
     ProgressDialog progressDialog;
+    private String uid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,13 +111,15 @@ public class Signup extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
-                    User user = new User(name, email, pass, contact);
-                    reference.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    uid = mAuth.getCurrentUser().getUid();
+                    Toast.makeText(Signup.this, "new uid"+uid, Toast.LENGTH_SHORT).show();
+                    User user = new User(name, email, pass, contact,uid);
+                    reference.child(uid).setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
                                 Toast.makeText(Signup.this, "Account Created Successfully", Toast.LENGTH_SHORT).show();
-                                Intent RestLisrIntent=new Intent(Signup.this,RestaurantList.class);
+                                Intent RestLisrIntent = new Intent(Signup.this, RestaurantList.class);
                                 startActivity(RestLisrIntent);
                                 finish();
                             } else

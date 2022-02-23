@@ -13,6 +13,8 @@ public class RestaurantViewHolder extends RecyclerView.ViewHolder {
     public TextView restNameTv;
     public TextView restTypeTv;
     ImageView moreOptionMenuIv;
+    ImageView tableIconIv;
+    static TextView seatAvailable;
 
     public RestaurantViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -21,5 +23,7 @@ public class RestaurantViewHolder extends RecyclerView.ViewHolder {
         restNameTv = itemView.findViewById(R.id.restName);
         restTypeTv = itemView.findViewById(R.id.restType);
         moreOptionMenuIv = itemView.findViewById(R.id.more_option);
+        tableIconIv = itemView.findViewById(R.id.seatIcon);
+        seatAvailable = itemView.findViewById(R.id.seatAvailable);
     }
 }

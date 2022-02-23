@@ -46,6 +46,7 @@ public class RestaurantDetail extends AppCompatActivity {
     String currentUId;
     BottomNavigationView bottomNavigationView;
     Button viewCartBtn;
+    TextView tableSeat;
 
 
     @Override
@@ -143,7 +144,6 @@ public class RestaurantDetail extends AppCompatActivity {
 
     private void getItems() {
 
-        Toast.makeText(this, "in get ", Toast.LENGTH_SHORT).show();
 
         restRef.child(restId).child("Item").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -173,10 +173,11 @@ public class RestaurantDetail extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         //restId = bundle.getString("restId");
         restId=RestaurantAdapter.restId;
-        getRestaurantDetail(RestaurantAdapter.restId);
+        String seat=bundle.getString("seats");
+        getRestaurantDetail(RestaurantAdapter.restId,seat);
     }
 
-    private void getRestaurantDetail(String restId) {
+    private void getRestaurantDetail(String restId, final String seat) {
 
         restRef.child(RestaurantAdapter.restId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -187,6 +188,7 @@ public class RestaurantDetail extends AppCompatActivity {
                 Log.e("name ", name);
                 restNameTv.setText(name);
                 restTypeTv.setText(type);
+                tableSeat.setText(seat);
             }
 
             @Override
@@ -211,6 +213,7 @@ public class RestaurantDetail extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.BNavigation);
         viewCartBtn = findViewById(R.id.viewCartBtn);
         mAuth = FirebaseAuth.getInstance();
+        tableSeat=findViewById(R.id.restDetailTable);
         if (mAuth.getCurrentUser() != null)
             currentUId = mAuth.getCurrentUser().getUid();
     }

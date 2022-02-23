@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     String currentRestId;
     ProgressDialog startProgress;
     boolean check;
-    String userType;
+    static String userType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                             if(!check){
                                 Intent RestListIntent = new Intent(MainActivity.this, RestaurantList.class);
+                                userType="user";
                                 startActivity(RestListIntent);
                                 startProgress.dismiss();
                                 finish();

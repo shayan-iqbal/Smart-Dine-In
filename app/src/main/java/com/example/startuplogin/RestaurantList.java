@@ -285,6 +285,7 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             loginType = bundle.getString("userType");
+            Log.e("list login type ",loginType);
             if (loginType.equals("manager")) {
                 tableGroup.setVisibility(View.VISIBLE);
                 tableListRec.setVisibility(View.VISIBLE);

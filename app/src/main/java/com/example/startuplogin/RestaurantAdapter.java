@@ -37,7 +37,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
     FirebaseAuth mAuth = FirebaseAuth.getInstance();
     static String restId;
     boolean check;
-
+    int max;
 
     public RestaurantAdapter(ArrayList<Restaurant> restaurants, Context context) {
         this.restaurants = restaurants;
@@ -85,20 +85,22 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
 
 
         if (!check) {
+
+
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
 
-                    if(RestaurantList.loginType!=null) {
+                    if (RestaurantList.loginType != null) {
                         if (RestaurantList.loginType.equals("manager")) {
                             Intent itemList = new Intent(context, ItemList.class);
                             context.startActivity(itemList);
                         }
-                    }
-                    else {
+                    } else {
                         Intent restDetailIntent = new Intent(context, RestaurantDetail.class);
                         Bundle bundle = new Bundle();
                         bundle.putString("restId", restaurant.getRestId());
+                        bundle.putString("seats", String.valueOf(max));
                         bundle.putString("bundle", "detail");
                         restDetailIntent.putExtras(bundle);
                         context.startActivity(restDetailIntent);
@@ -112,8 +114,19 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
         holder.restTypeTv.setText(restaurant.getRestType());
 
 
-        if (!(currentUId.equals("smartadmin@gmail.com"))) {
+        if ((currentUId.equals("smartadmin@gmail.com"))) {
+            holder.moreOptionMenuIv.setVisibility(View.VISIBLE);
+        } else {
             holder.moreOptionMenuIv.setVisibility(View.INVISIBLE);
+            if (MainActivity.userType != null) {
+                if ((!MainActivity.userType.equals("manager"))) {
+                    holder.seatAvailable.setVisibility(View.VISIBLE);
+                    holder.tableIconIv.setVisibility(View.VISIBLE);
+
+                    countSeats(position, restId);
+                }
+            }
+
         }
 
         holder.moreOptionMenuIv.setOnClickListener(new View.OnClickListener() {
@@ -143,6 +156,28 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
             }
         });
 
+
+    }
+
+    private void countSeats(int position, String restId) {
+        restRef.child(restId).child("Table").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    int seat = Integer.parseInt(dataSnapshot.child("tableSeat").getValue().toString());
+                    if (seat > max) {
+                        max = seat;
+                        RestaurantViewHolder.seatAvailable.setText(String.valueOf(max));
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
 
     }
 

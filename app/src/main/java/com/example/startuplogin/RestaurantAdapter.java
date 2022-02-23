@@ -96,7 +96,6 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
                         }
                     }
                     else {
-                        Toast.makeText(context, RestaurantList.loginType, Toast.LENGTH_SHORT).show();
                         Intent restDetailIntent = new Intent(context, RestaurantDetail.class);
                         Bundle bundle = new Bundle();
                         bundle.putString("restId", restaurant.getRestId());
@@ -112,7 +111,6 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
         holder.restNameTv.setText(restaurant.getRestName());
         holder.restTypeTv.setText(restaurant.getRestType());
 
-        Toast.makeText(context, currentUId, Toast.LENGTH_SHORT).show();
 
         if (!(currentUId.equals("smartadmin@gmail.com"))) {
             holder.moreOptionMenuIv.setVisibility(View.INVISIBLE);

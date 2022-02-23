@@ -7,12 +7,14 @@ public class Table implements Serializable {
     int tableSeat;
     String tableStatus;
     String tableId;
+    String orderId;
 
-    public Table(String tableName, int tableSeat, String tableStatus, String tableId) {
+    public Table(String tableName, int tableSeat, String tableStatus, String tableId, String orderId) {
         this.tableName = tableName;
         this.tableSeat = tableSeat;
         this.tableStatus = tableStatus;
         this.tableId = tableId;
+        this.orderId = orderId;
     }
 
     public Table() {
@@ -48,5 +50,13 @@ public class Table implements Serializable {
 
     public void setTableId(String tableId) {
         this.tableId = tableId;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
     }
 }

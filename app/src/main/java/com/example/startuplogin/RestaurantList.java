@@ -1,8 +1,6 @@
 package com.example.startuplogin;
 
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -41,9 +39,8 @@ import com.google.firebase.database.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.example.startuplogin.TableAdapter.table;
-import static com.example.startuplogin.TableAdapter.tableList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RestaurantList extends AppCompatActivity implements SearchView.OnQueryTextListener, androidx.appcompat.widget.SearchView.OnQueryTextListener {
 
@@ -74,7 +71,9 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
     Spinner tableSeatSp;
     Spinner tableStatus;
     static String loginType;
-    int check=0;
+    int check = 0;
+    private static final String TABLE_PATTERN = "^[T1-9]{2,3}$";
+    private boolean spinnerTouched;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,10 +81,7 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
         setContentView(R.layout.activity_restaurant_list);
 
         init();
-//        if(TableAdapter.check){
-//            tableSeatSp.setSelected(false);  // must
-//            tableSeatSp.setSelection(0,true);
-//        }
+
         checkManager();
         getCurrentRest();
         checkCart();
@@ -93,20 +89,41 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
         addTableBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                finish();
+                Pattern pattern;
+                Matcher matcher;
+                boolean check = true;
                 String name = tableNameEt.getText().toString();
-                // String seat = tableSeatEt.getText().toString();
 
-                String tableId = restRef.child(restId).child("Table").push().getKey();
-                Table table = new Table(name, noOfSeats, "Free", tableId);
-                restRef.child(restId).child("Table").child(tableId).setValue(table).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            Toast.makeText(RestaurantList.this, "Table Added", Toast.LENGTH_SHORT).show();
-                        } else
-                            Toast.makeText(RestaurantList.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                if (!name.isEmpty()) {
+                    pattern = Pattern.compile(TABLE_PATTERN);
+                    matcher = pattern.matcher(name);
+                    if (!matcher.matches()) {
+                        tableNameEt.setError("Invalid Table Name");
+                        check = false;
+                        startDialog.dismiss();
                     }
-                });
+                } else {
+                    tableNameEt.setError("Required Field");
+                    check = false;
+                    startDialog.dismiss();
+                }
+
+
+                if (check) {
+                    String tableId = restRef.child(restId).child("Table").push().getKey();
+                    Table table = new Table(name, noOfSeats, "Free", tableId, "");
+                    restRef.child(restId).child("Table").child(tableId).setValue(table).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(RestaurantList.this, "Table Added", Toast.LENGTH_SHORT).show();
+                                finish();
+                            } else
+                                Toast.makeText(RestaurantList.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
             }
         });
         currentUEmail = mAuth.getCurrentUser().getEmail();
@@ -247,6 +264,7 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
                         }
                     });
                 }
+                finish();
             }
 
             @Override
@@ -257,66 +275,6 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
-            }
-        });
-
-//            TableViewHolder.tableStatusSp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//                @Override
-//                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-//                    String status = TableAdapter.tableStatusOption[i];
-//                    showDialog(i, status);
-//                }
-//
-//                @Override
-//                public void onNothingSelected(AdapterView<?> adapterView) {
-//
-//                }
-//            });
-
-    }
-
-    private void showDialog(final int position, final String option) {
-
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        if (option.equals("Reserved")) {
-            builder.setMessage("Are you sure,you want to Free this Table");
-        }
-
-
-        builder.setTitle("Warning");
-        builder.setIcon(R.drawable.ic_warning);
-        builder.setCancelable(false);
-
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-
-            @Override
-            public void onClick(DialogInterface arg0, int arg1) {
-                if (option.equals("Reserved")) {
-                    updateStatus(position, option);
-                }
-
-            }
-        });
-
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        AlertDialog alertDialog = builder.create();
-        alertDialog.show();
-    }
-
-    private void updateStatus(int position, String option) {
-        table = tableList.get(position);
-        restRef.child(RestaurantList.restId).child("Table").child(table.getTableId()).child("tableStatus").setValue(option).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    Toast.makeText(RestaurantList.this, "Status Updated", Toast.LENGTH_SHORT).show();
-                }
             }
         });
 
@@ -403,22 +361,17 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
                 tableListRec.setAdapter(adapter);
                 adapter.notifyDataSetChanged();
                 startDialog.dismiss();
-//
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @androidx.annotation.Nullable String previousChildName) {
-                Table table = snapshot.getValue(Table.class);
-                tableArrayList.add(table);
-                TableAdapter adapter = new TableAdapter(RestaurantList.this, tableArrayList);
-                tableListRec.setLayoutManager(new LinearLayoutManager(RestaurantList.this));
-                tableListRec.setAdapter(adapter);
-                adapter.notifyDataSetChanged();
+                finish();
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
 
+                finish();
             }
 
             @Override
@@ -457,7 +410,9 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
     protected void onPause() {
         super.onPause();
         checkCart();
+        finish();
     }
+
 
     private void checkCart() {
 
@@ -561,8 +516,6 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
         tableNameEt = findViewById(R.id.tableNameEt);
         seatSpinner = findViewById(R.id.tableSeatSpIn);
         tableSeatSp = findViewById(R.id.tableSeatSp);
-
-        // tableSeatSp.setOnItemSelectedListener(this);
 
         if (mAuth.getCurrentUser() != null)
             currentUId = mAuth.getCurrentUser().getUid();

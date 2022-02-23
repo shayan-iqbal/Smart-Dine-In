@@ -70,6 +70,7 @@ public class CartDetails extends AppCompatActivity {
     DatabaseReference orderReference;
     boolean tableStatus;
     String restId;
+    private String orderId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,8 +87,8 @@ public class CartDetails extends AppCompatActivity {
             public void onClick(View view) {
                 noOfGuest = noOfGuestEt.getText().toString();
                 dialog.show();
-                //saveOrder();
-                submitPayment();
+                saveOrder();
+                //submitPayment();
             }
         });
     }
@@ -95,7 +96,7 @@ public class CartDetails extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-       // finish();
+        // finish();
     }
 
     @Override
@@ -122,7 +123,7 @@ public class CartDetails extends AppCompatActivity {
         finish();
     }
 
-    private void submitPayment() {
+    private void submitPayment(String orderId) {
 
         DropInRequest dropInRequest = new DropInRequest().clientToken(token);
         startActivityForResult(dropInRequest.getIntent(this), REQUEST_CODE);
@@ -168,8 +169,19 @@ public class CartDetails extends AppCompatActivity {
 
                         @Override
                         public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                            saveOrder();
-                            Toast.makeText(CartDetails.this, responseString, Toast.LENGTH_LONG).show();
+                            // saveOrder();
+                            Toast.makeText(CartDetails.this, "Transaction Successfull", Toast.LENGTH_LONG).show();
+                            Intent orderIntent = new Intent(CartDetails.this, OrderActivity.class);
+                            orderIntent.putExtra("userType", "user");
+                            orderIntent.putExtra("orderId", orderId);
+                            orderIntent.putExtra("restId", restId);
+
+                            orderIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            orderIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(orderIntent);
+                            finish();
+                            dialog.dismiss();
+
                         }
                     });
 
@@ -188,9 +200,7 @@ public class CartDetails extends AppCompatActivity {
     private void saveOrder() {
 
         ArrayList<Order> orders = new ArrayList<>();
-        final String orderId = orderReference.push().getKey();
-
-        Log.e("cart list check ", cartList.get(0).getDrink().toString());
+        orderId = orderReference.push().getKey();
 
         orderReference.child(orderId).setValue(cartList).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
@@ -236,16 +246,17 @@ public class CartDetails extends AppCompatActivity {
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()) {
                                         deleteFromCart();
-                                        Intent orderIntent = new Intent(CartDetails.this, OrderActivity.class);
-                                        orderIntent.putExtra("userType", "user");
-                                        orderIntent.putExtra("orderId", orderId);
-                                        orderIntent.putExtra("restId", restId);
-
-                                        orderIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                        orderIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                        startActivity(orderIntent);
-                                        finish();
-                                        dialog.dismiss();
+                                        submitPayment(orderId);
+//                                        Intent orderIntent = new Intent(CartDetails.this, OrderActivity.class);
+//                                        orderIntent.putExtra("userType", "user");
+//                                        orderIntent.putExtra("orderId", orderId);
+//                                        orderIntent.putExtra("restId", restId);
+//
+//                                        orderIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//                                        orderIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                                        startActivity(orderIntent);
+//                                        finish();
+//                                        dialog.dismiss();
 
                                     } else {
                                         dialog.dismiss();
@@ -255,10 +266,11 @@ public class CartDetails extends AppCompatActivity {
                             });
                             break;
                         }
-                        if (!tableStatus) {
-                            orderReference.child(orderId).removeValue();
-                            showAlert();
-                        }
+
+                    }
+                    if (!tableStatus) {
+                        orderReference.child(orderId).removeValue();
+                        showAlert();
                     }
                 }
             }

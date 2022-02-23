@@ -47,21 +47,22 @@ public class CartAdapter extends RecyclerView.Adapter<CartViewHolder> {
         final Cart cart = cartList.get(position);
 
         if (userType != null)
-            if (userType.equals("user")) {
-                holder.quantityTv.setVisibility(View.INVISIBLE);
+            if (userType.equals("user") || (userType.equals("manager"))) {
                 holder.plusIm.setVisibility(View.INVISIBLE);
                 holder.minusIm.setVisibility(View.INVISIBLE);
                 holder.deleteCartImage.setVisibility(View.INVISIBLE);
                 holder.cartItemName.setText(cart.getItemName());
                 holder.cartItemVariation.setText(cart.getMeat() + "," + cart.getFries() + "," + cart.getDrink());
                 holder.cartItemPrice.setText("Rs. " + cart.getItemPrice());
-            }
+                holder.quantityTv.setText( cart.getQuantity());
+            } else {
+                holder.cartItemImage.setImageResource(R.drawable.deal3);
+                holder.cartItemName.setText(cart.getItemName());
+                holder.cartItemVariation.setText(cart.getMeat() + "," + cart.getFries() + "," + cart.getDrink());
+                holder.cartItemPrice.setText("Rs. " + cart.getItemPrice());
+                holder.quantityTv.setText(cart.getQuantity());
 
-        holder.cartItemImage.setImageResource(R.drawable.deal3);
-        holder.cartItemName.setText(cart.getItemName());
-        holder.cartItemVariation.setText(cart.getMeat() + "," + cart.getFries() + "," + cart.getDrink());
-        holder.cartItemPrice.setText("Rs. " + cart.getItemPrice());
-        holder.quantityTv.setText(cart.getQuantity());
+            }
 
         holder.plusIm.setOnClickListener(new View.OnClickListener() {
             @Override

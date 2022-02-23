@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -30,6 +31,7 @@ public class TableAdapter extends RecyclerView.Adapter<TableViewHolder> {
     static boolean check;
     DatabaseReference tableRef = FirebaseDatabase.getInstance().getReference("Restaurant");
     public static String[] tableStatusOption;
+    private boolean spinnerTouched = false;
 
     public TableAdapter(Context context, ArrayList<Table> tableList) {
         this.context = context;
@@ -48,14 +50,14 @@ public class TableAdapter extends RecyclerView.Adapter<TableViewHolder> {
     public void onBindViewHolder(@NonNull TableViewHolder holder, final int position) {
         check = true;
         tableStatusOption = new String[]{"Free", "Reserved", "Unavailable"};
-        ArrayAdapter<String> tableStatusAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, tableStatusOption);
+        final ArrayAdapter<String> tableStatusAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_item, tableStatusOption);
         tableStatusAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         holder.tableStatusSp.setAdapter(tableStatusAdapter);
 
         table = tableList.get(position);
 
-      //  holder.tableStatusSp.setSelection(0, true);
         if (table != null) {
+
             holder.tableNumTv.setText(table.getTableName());
             holder.tableSeatTv.setText(String.valueOf(table.getTableSeat()));
             String status = table.getTableStatus();
@@ -63,25 +65,58 @@ public class TableAdapter extends RecyclerView.Adapter<TableViewHolder> {
                 TableViewHolder.tableStatusSp.setSelection(0);
             else {
                 TableViewHolder.tableStatusSp.setSelection(1);
-                holder.tableStatusSp.setSelected(false);
-                holder.tableStatusSp.setSelection(1, true);
-                holder.tableStatusSp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        String statusName = tableStatusOption[i];
-                        Log.e("status ", statusName);
-                        showDialog(i, statusName);
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> adapterView) {
-
-                    }
-                });
             }
+            if (!(table.getOrderId() == null)) {
+                if(!(table.getOrderId().isEmpty()))
+                holder.tableOrder.setVisibility(View.VISIBLE);
+
+            } else
+                holder.tableOrder.setVisibility(View.INVISIBLE);
         }
 
+        holder.tableOrder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Table table=tableList.get(position);
+                Log.e("Table Object",table.getTableName());
+                Intent orderIntent = new Intent(context, OrderActivity.class);
+                orderIntent.putExtra("userType", "manager");
+                orderIntent.putExtra("restId", RestaurantList.restId);
+                orderIntent.putExtra("orderId", table.getOrderId());
+                orderIntent.putExtra("tableName", table.getTableName());
+                context.startActivity(orderIntent);
+                Log.e("table order ",table.getOrderId());
+            }
+        });
 
+        TableViewHolder.tableStatusSp.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                spinnerTouched = true;
+                return false;
+            }
+        });
+
+        TableViewHolder.tableStatusSp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                if (spinnerTouched) {
+                    String status = adapterView.getItemAtPosition(i).toString();
+                    if (status.equals("Free"))
+                        showDialog(position, status);
+                    else {
+                        showDialog1();
+                        adapterView.setSelection(0);
+                    }
+                }
+                spinnerTouched = false;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
 
         holder.tableDelete.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -90,14 +125,24 @@ public class TableAdapter extends RecyclerView.Adapter<TableViewHolder> {
             }
         });
 
-        holder.tableOrder.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent orderIntent = new Intent(context, OrderActivity.class);
-                orderIntent.putExtra("tableBundle", table);
-                context.startActivity(orderIntent);
+    }
+
+    private void showDialog1() {
+
+        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage("Sorry..You cannot perform this action!!");
+        builder.setTitle("Warning");
+        builder.setIcon(R.drawable.ic_warning);
+        builder.setCancelable(false);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                TableViewHolder.tableStatusSp.setSelection(0, true);
+                dialog.dismiss();
             }
         });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 
 
@@ -106,7 +151,7 @@ public class TableAdapter extends RecyclerView.Adapter<TableViewHolder> {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         if (option.equals("Delete")) {
             builder.setMessage("Are you sure,you want to Delete restaurant");
-        } else if (option.equals("Reserved")) {
+        } else if (option.equals("Free")) {
             builder.setMessage("Are you sure,you want to Free this Table");
         }
 
@@ -121,7 +166,7 @@ public class TableAdapter extends RecyclerView.Adapter<TableViewHolder> {
             public void onClick(DialogInterface arg0, int arg1) {
                 if (option.equals("Delete")) {
                     deleteRest(position);
-                } else if (option.equals("Reserved")) {
+                } else if (option.equals("Free")) {
                     updateStatus(position, option);
                 }
 
@@ -141,11 +186,23 @@ public class TableAdapter extends RecyclerView.Adapter<TableViewHolder> {
     private void updateStatus(int position, String option) {
 
         table = tableList.get(position);
+        Toast.makeText(context, table.getTableId(), Toast.LENGTH_SHORT).show();
         tableRef.child(RestaurantList.restId).child("Table").child(table.getTableId()).child("tableStatus").setValue(option).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    Toast.makeText(context, "Status Updated", Toast.LENGTH_SHORT).show();
+                    tableRef.child(RestaurantList.restId).child("Table").child(table.getTableId()).child("orderId").removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(context, "Status Updated", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(context, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                } else {
+                    Toast.makeText(context, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
         });

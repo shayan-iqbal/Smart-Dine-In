@@ -1,16 +1,17 @@
 package com.example.startuplogin;
 
+import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.startuplogin.DB.Cart;
-import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -19,7 +20,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class OrderActivity extends AppCompatActivity {
@@ -29,13 +29,17 @@ public class OrderActivity extends AppCompatActivity {
     Bundle bundle;
     String intentType;
     CartAdapter adapter;
-    String orderId, currentUid, restId;
+    String orderId, currentUid, restId, tableName;
     FirebaseAuth mAuth;
     DatabaseReference orderRef;
     DatabaseReference tableRef;
     List<Cart> orderArrayList;
     TextView totalAmount;
-
+    TextView headingTv;
+    TextView tableNumHeadTv;
+    TextView totalTv;
+    ArrayList<Cart> cartArrayList;
+    ProgressDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,77 +50,89 @@ public class OrderActivity extends AppCompatActivity {
         checkIntentType();
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        if (intentType.equals("manager")) {
+            Intent intent = new Intent(OrderActivity.this, RestaurantList.class);
+            intent.putExtra("userType", "manager");
+            startActivity(intent);
+            finish();
+        }
+    }
+
     private void checkIntentType() {
 
         if (bundle != null) {
+
             intentType = bundle.getString("userType");
-            Log.e("intent type ", intentType);
+            Log.e("intent  ", intentType);
+
             if (intentType.equals("user")) {
                 orderId = bundle.getString("orderId");
                 restId = bundle.getString("restId");
-                Log.e("order id ", orderId);
-                tableRef=tableRef.child(restId).child("Table");
-                getOrderDetails(orderId, restId);
+                tableRef = tableRef.child(restId).child("Table");
+
+                headingTv.setText("Order Completed");
+                tableNumHeadTv.setText("Your Table Number is ");
+
+                getManagerOrderDetails(restId, orderId, "");
+
+            } else if (intentType.equals("manager")) {
+                restId = bundle.getString("restId");
+                orderId = bundle.getString("orderId");
+                tableName = bundle.getString("tableName");
+                Log.e("order order ", orderId);
+
+                headingTv.setText("Table Reserved");
+                tableNumHeadTv.setText("Table Number is ");
+                tableNumTv.setText(tableName);
+                getManagerOrderDetails(restId, orderId, tableName);
             }
 
 
         }
     }
 
-    private void getOrderDetails(final String orderId, final String restId) {
+    private void getManagerOrderDetails(String restId, String orderId, String tableName) {
 
-        orderRef.child(orderId).addValueEventListener(new ValueEventListener() {
+        orderRef.child(orderId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-
-                String tableId = snapshot.child("tableId").getValue().toString();
-                displayTableName(tableId);
-                Log.e("table Id", tableId);
-//                Toast.makeText(OrderActivity.this, "on data", Toast.LENGTH_SHORT).show();
-//                Toast.makeText(OrderActivity.this, "in if", Toast.LENGTH_SHORT).show();
-                boolean counter = false;
+                Log.e("order snapshot", snapshot.getValue().toString());
                 int i = 0;
-                HashMap<String, String> list = new HashMap<>();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    //
-                    if (!counter) {
-                        //   Log.e("counter ", dataSnapshot.child().getValue().toString());
 
-                        //Cart cart = dataSnapshot.child("0").getValue(Cart.class);
-                        // Log.e("cart ", cart.toString());
-//                        for (DataSnapshot listArray :dataSnapshot.getChildren()){
-//
-//                            String drink = listArray.child("drink").getValue(String.class);
-//                            Log.e("cart key", listArray.getKey());
-//                            Log.e("drink", drink);
-//                            Log.e("name ", listArray.getValue().toString());
-//                        }
+                Log.e("count ", String.valueOf(snapshot.getChildrenCount()));
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    if (i == 0) {
+
+                        String name = dataSnapshot.child("itemName").getValue(String.class);
+                        String drink = dataSnapshot.child("drink").getValue(String.class);
+                        String meat = dataSnapshot.child("meat").getValue(String.class);
+                        String fries = dataSnapshot.child("fries").getValue(String.class);
+                        String price = dataSnapshot.child("itemPrice").getValue(String.class);
+                        String quantity = dataSnapshot.child("quantity").getValue(String.class);
+
+                        Cart cart = new Cart("", name, "", price, meat, fries, drink, quantity);
+                        cartArrayList.add(cart);
+                        adapter = new CartAdapter(cartArrayList, OrderActivity.this, "manager");
+                        orderList.hasFixedSize();
+                        orderList.setLayoutManager(new LinearLayoutManager(OrderActivity.this));
+                        orderList.setAdapter(adapter);
+                        dialog.dismiss();
 
                     } else {
-                        counter = true;
-                        Log.e("array ", dataSnapshot.getValue().toString());
+                        Log.e("total ", dataSnapshot.getValue().toString());
+                        long total = snapshot.child("total").getValue(Long.class);
+                        String tableId = snapshot.child("tableId").getValue(String.class);
+                        if (intentType.equals("user")) {
+                            displayTableName(tableId);
+                        }
+                        totalTv.setText(String.valueOf(total));
+                        dialog.dismiss();
                     }
-                    //list.add(dataSnapshot.getValue(Order.class));
-
+                    i++;
                 }
-//                        Toast.makeText(OrderActivity.this, "in for", Toast.LENGTH_SHORT).show();
-//                        String userId = dataSnapshot.child("userId").getValue().toString();
-//                        String restIdData = dataSnapshot.child("restId").getValue().toString();
-//                        Log.e("value ", userId);
-//                        Log.e("key ", dataSnapshot.getKey());
-//                        if ((userId.equals(currentUid)) && (restIdData.equals(restId))) {
-//                            Log.e("snapshot ",dataSnapshot.getValue().toString());
-//                            Cart cart = dataSnapshot.getValue(Cart.class);
-//                           //Log.e("cart order ",dataSnapshot.child(orderId).child("drink").getValue().toString());
-//                            totalAmount.setText(dataSnapshot.child("total").getValue().toString());
-//                            displayTableName(dataSnapshot.child("tableId").getValue().toString());
-//                            orderArrayList.add(cart);
-//                            adapter = new CartAdapter(orderArrayList, OrderActivity.this, "user");
-//                            orderList.hasFixedSize();
-//                            orderList.setLayoutManager(new LinearLayoutManager(OrderActivity.this));
-//                            orderList.setAdapter(adapter);
-//                        }
-
             }
 
             @Override
@@ -125,25 +141,16 @@ public class OrderActivity extends AppCompatActivity {
             }
         });
 
-
     }
 
     private void displayTableName(final String tableId) {
         tableRef.child(tableId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Table table=snapshot.getValue(Table.class);
-                Log.e("id ",snapshot.getValue().toString());
-                String name=snapshot.child("tableName").getValue(String.class);
+                Table table = snapshot.getValue(Table.class);
+                Log.e("id ", snapshot.getValue().toString());
+                String name = snapshot.child("tableName").getValue(String.class);
                 tableNumTv.setText(name);
-                Log.e("name ",snapshot.child("tableName").getValue(String.class));
-              //  Log.e("id 2 ",snapshot.child("tableId").getValue().toString());
-//                if(table.getTableId().equals(tableId)){
-//                    String name=table.getTableName();
-//                    Log.e("table name ",name);
-//                    tableNumTv.setText(name);
-//                }
-
 
             }
 
@@ -164,6 +171,12 @@ public class OrderActivity extends AppCompatActivity {
         orderArrayList = new ArrayList<>();
         orderRef = FirebaseDatabase.getInstance().getReference("Order");
         tableRef = FirebaseDatabase.getInstance().getReference("Restaurant");
-        totalAmount = findViewById(R.id.totalTv);
+        headingTv = findViewById(R.id.heading);
+        tableNumHeadTv = findViewById(R.id.tableNumHead);
+        totalTv = findViewById(R.id.totalTv);
+        cartArrayList = new ArrayList<>();
+        dialog = new ProgressDialog(this);
+        dialog.show();
+        dialog.setCancelable(true);
     }
 }

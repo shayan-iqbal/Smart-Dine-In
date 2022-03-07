@@ -6,11 +6,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -38,6 +40,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
     static String restId;
     boolean check;
     int max;
+    int max1;
 
     public RestaurantAdapter(ArrayList<Restaurant> restaurants, Context context) {
         this.restaurants = restaurants;
@@ -59,6 +62,38 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
         //Glide.with(context).load(restaurant.getRestImage()).into(holder.restImageIm);
         final String currentUId = mAuth.getCurrentUser().getEmail();
         restId = restaurant.getRestId();
+
+
+        //int max=countSeats(position, restId);
+
+//        restRef.child(restId).child("Table").addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//
+//                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+//                    int seat = Integer.parseInt(dataSnapshot.child("tableSeat").getValue().toString());
+//                    String status = dataSnapshot.child("tableStatus").getValue().toString();
+//                    Log.e("rst id ", restId);
+//                    Log.e("seat ", String.valueOf(seat));
+//                    Log.e("status ", status);
+//                    if (seat > max && status.equals("Free")) {
+//                        max = seat;
+//                    }
+//
+//                }
+//                Log.e("max1 ", String.valueOf(max));
+//
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//
+//            }
+//        });
+
+
+        Log.e("max11 ", String.valueOf(max1));
+        Log.e("rest iddd ", restId);
 
         restRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -85,8 +120,16 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
 
 
         if (!check) {
-
-
+//            if (RestaurantList.loginType != null) {
+//                if (RestaurantList.loginType.equals("manager")) {
+//                    if (!(restaurant.getRestEmail().equals(currentUId))) {
+//                        holder.itemView.setVisibility(View.GONE);
+//                        notifyItemRemoved(position);
+//                        restaurants.remove(position);
+//                        notifyItemRangeChanged(position,restaurants.size());
+//                    }
+//                }
+//            }
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -96,7 +139,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
                             Intent itemList = new Intent(context, ItemList.class);
                             context.startActivity(itemList);
                         }
-                    } else {
+                    } else if (!currentUId.equals("smartadmin@gmail.com")) {
                         Intent restDetailIntent = new Intent(context, RestaurantDetail.class);
                         Bundle bundle = new Bundle();
                         bundle.putString("restId", restaurant.getRestId());
@@ -112,7 +155,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
         holder.restImageIm.setImageResource(R.drawable.rest_image);
         holder.restNameTv.setText(restaurant.getRestName());
         holder.restTypeTv.setText(restaurant.getRestType());
-
+        holder.seatAvailable.setText(String.valueOf(max1));
 
         if ((currentUId.equals("smartadmin@gmail.com"))) {
             holder.moreOptionMenuIv.setVisibility(View.VISIBLE);
@@ -124,6 +167,8 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
                     holder.tableIconIv.setVisibility(View.VISIBLE);
 
                     countSeats(position, restId);
+                    Log.e("position rest ", String.valueOf(position));
+
                 }
             }
 
@@ -159,19 +204,27 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
 
     }
 
-    private void countSeats(int position, String restId) {
+    private void countSeats(final int position, final String restId) {
         restRef.child(restId).child("Table").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
+                max = 0;
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     int seat = Integer.parseInt(dataSnapshot.child("tableSeat").getValue().toString());
-                    if (seat > max) {
+                    String status = dataSnapshot.child("tableStatus").getValue().toString();
+                    Log.e("rst id ", restId);
+                    Log.e("seat ", String.valueOf(seat));
+                    Log.e("status ", status);
+                    if (seat > max && status.equals("Free")) {
                         max = seat;
-                        RestaurantViewHolder.seatAvailable.setText(String.valueOf(max));
+
                     }
+
                 }
+                getmax(max, position);
             }
+
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
@@ -179,6 +232,18 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
             }
         });
 
+    }
+
+    private int getmax(int max, int position) {
+
+        max1 = max;
+        Log.e("max method ", String.valueOf(max1));
+        Log.e("max method position  ", String.valueOf(position));
+        View view = RestaurantList.restListRv.findViewHolderForAdapterPosition(position).itemView;
+        TextView seat = view.findViewById(R.id.seatAvailable);
+        seat.setText(String.valueOf(max1));
+        max1 = 0;
+        return max1;
     }
 
     private void showDialog(final int position, final String option) {

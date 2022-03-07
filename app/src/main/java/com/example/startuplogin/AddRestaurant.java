@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -207,8 +208,16 @@ public class AddRestaurant extends AppCompatActivity {
                     mAuth.signInWithEmailAndPassword("smartadmin@gmail.com","smartdinein").addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
-                            if(!task.isSuccessful()){
+                            if(task.isSuccessful()){
+                                Log.e("chcek add ",mAuth.getCurrentUser().getEmail());
+                                clearForm((ViewGroup) findViewById(R.id.mainLayout));
+                                Intent restListIntent = new Intent(AddRestaurant.this, RestaurantList.class);
+                                startActivity(restListIntent);
+                                finish();
+                            }
+                            else {
                                 Toast.makeText(AddRestaurant.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                                progressDialog.dismiss();
                             }
                         }
                     });
@@ -240,10 +249,10 @@ public class AddRestaurant extends AppCompatActivity {
                     } else {
                         Toast.makeText(AddRestaurant.this, "Restaurant Created Successfully", Toast.LENGTH_SHORT).show();
                     }
-                    clearForm((ViewGroup) findViewById(R.id.mainLayout));
-                    Intent restListIntent = new Intent(AddRestaurant.this, RestaurantList.class);
-                    startActivity(restListIntent);
-                    finish();
+//                    clearForm((ViewGroup) findViewById(R.id.mainLayout));
+//                    Intent restListIntent = new Intent(AddRestaurant.this, RestaurantList.class);
+//                    startActivity(restListIntent);
+//                    finish();
                 } else {
                     Toast.makeText(AddRestaurant.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     progressDialog.dismiss();

@@ -38,11 +38,14 @@ import com.loopj.android.http.TextHttpResponseHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import cz.msebera.android.httpclient.Header;
 
 public class CartDetails extends AppCompatActivity {
 
+    private static final String GUEST_PATTERN = "^[1-9]{1,3}$";
     private static int total = 0;
     FirebaseAuth mAuth;
     static String currentUId;
@@ -85,10 +88,30 @@ public class CartDetails extends AppCompatActivity {
         paymentBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                noOfGuest = noOfGuestEt.getText().toString();
                 dialog.show();
-                saveOrder();
-                //submitPayment();
+                Pattern pattern;
+                Matcher matcher;
+                boolean check = true;
+
+                noOfGuest = noOfGuestEt.getText().toString();
+
+                if (!noOfGuest.isEmpty()) {
+                    pattern = Pattern.compile(GUEST_PATTERN);
+                    matcher = pattern.matcher(noOfGuest);
+                    if (!matcher.matches()) {
+                        noOfGuestEt.setError("Invalid input");
+                        check = false;
+                        dialog.dismiss();
+                    }
+                } else {
+                    noOfGuestEt.setError("Required Field");
+                    check = false;
+                    dialog.dismiss();
+                }
+                if (check) {
+                    saveOrder();
+                    //submitPayment();
+                }
             }
         });
     }
@@ -298,7 +321,7 @@ public class CartDetails extends AppCompatActivity {
                 .setCancelable(false)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        Intent restDetailIntent = new Intent(CartDetails.this, RestaurantDetail.class);
+                        Intent restDetailIntent = new Intent(CartDetails.this, RestaurantList.class);
                         startActivity(restDetailIntent);
                         finish();
                         restDetailIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -328,6 +351,8 @@ public class CartDetails extends AppCompatActivity {
             cartItemListRv.setLayoutManager(new LinearLayoutManager(this));
             cartItemListRv.hasFixedSize();
             cartAdapter.notifyDataSetChanged();
+
+            Log.e("carrrrt list ", cartList.toString());
 
             setAmount();
 

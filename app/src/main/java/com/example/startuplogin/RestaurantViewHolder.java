@@ -14,7 +14,7 @@ public class RestaurantViewHolder extends RecyclerView.ViewHolder {
     public TextView restTypeTv;
     ImageView moreOptionMenuIv;
     ImageView tableIconIv;
-    static TextView seatAvailable;
+    TextView seatAvailable;
 
     public RestaurantViewHolder(@NonNull View itemView) {
         super(itemView);

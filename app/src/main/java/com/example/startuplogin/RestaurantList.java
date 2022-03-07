@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 public class RestaurantList extends AppCompatActivity implements SearchView.OnQueryTextListener, androidx.appcompat.widget.SearchView.OnQueryTextListener {
 
     ArrayList<Restaurant> restaurants;
-    RecyclerView restListRv;
+   static RecyclerView restListRv;
     RestaurantAdapter restAdapter;
     FirebaseAuth mAuth;
     FirebaseDatabase restDatabase;
@@ -126,7 +126,7 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
                 }
             }
         });
-        currentUEmail = mAuth.getCurrentUser().getEmail();
+       // currentUEmail = mAuth.getCurrentUser().getEmail();
 
         restRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -411,7 +411,7 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
     protected void onPause() {
         super.onPause();
         checkCart();
-        finish();
+
     }
 
 
@@ -431,8 +431,8 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
                 }
             });
         }
-        Log.e("user id ", currentUId);
-        Log.e("cart list ", cartList.toString());
+//        Log.e("user id ", currentUId);
+        //Log.e("cart list ", cartList.toString());
 
     }
 
@@ -518,8 +518,10 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
         seatSpinner = findViewById(R.id.tableSeatSpIn);
         tableSeatSp = findViewById(R.id.tableSeatSp);
 
-        if (mAuth.getCurrentUser() != null)
+        if (mAuth.getCurrentUser() != null) {
             currentUId = mAuth.getCurrentUser().getUid();
+            currentUEmail = mAuth.getCurrentUser().getEmail();
+        }
     }
 
 

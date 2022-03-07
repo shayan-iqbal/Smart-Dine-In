@@ -171,15 +171,15 @@ public class RestaurantDetail extends AppCompatActivity {
     private void getBundle() {
 
         Bundle bundle = getIntent().getExtras();
-        //restId = bundle.getString("restId");
-        restId=RestaurantAdapter.restId;
+        restId = bundle.getString("restId");
+       // restId=RestaurantAdapter.restId;
         String seat=bundle.getString("seats");
-        getRestaurantDetail(RestaurantAdapter.restId,seat);
+        getRestaurantDetail(restId,seat);
     }
 
     private void getRestaurantDetail(String restId, final String seat) {
 
-        restRef.child(RestaurantAdapter.restId).addListenerForSingleValueEvent(new ValueEventListener() {
+        restRef.child(restId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String name = snapshot.child("restName").getValue().toString();

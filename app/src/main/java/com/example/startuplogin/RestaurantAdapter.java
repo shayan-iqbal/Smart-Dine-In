@@ -41,6 +41,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
     boolean check;
     int max;
     int max1;
+    private RecyclerView mRecyclerView;
 
     public RestaurantAdapter(ArrayList<Restaurant> restaurants, Context context) {
         this.restaurants = restaurants;
@@ -56,44 +57,17 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
     }
 
     @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        mRecyclerView = recyclerView;
+    }
+
+    @Override
     public void onBindViewHolder(@NonNull final RestaurantViewHolder holder, final int position) {
         final Restaurant restaurant = restaurants.get(position);
 
-        //Glide.with(context).load(restaurant.getRestImage()).into(holder.restImageIm);
         final String currentUId = mAuth.getCurrentUser().getEmail();
         restId = restaurant.getRestId();
-
-
-        //int max=countSeats(position, restId);
-
-//        restRef.child(restId).child("Table").addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//
-//                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-//                    int seat = Integer.parseInt(dataSnapshot.child("tableSeat").getValue().toString());
-//                    String status = dataSnapshot.child("tableStatus").getValue().toString();
-//                    Log.e("rst id ", restId);
-//                    Log.e("seat ", String.valueOf(seat));
-//                    Log.e("status ", status);
-//                    if (seat > max && status.equals("Free")) {
-//                        max = seat;
-//                    }
-//
-//                }
-//                Log.e("max1 ", String.valueOf(max));
-//
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-//        });
-
-
-        Log.e("max11 ", String.valueOf(max1));
-        Log.e("rest iddd ", restId);
 
         restRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -118,61 +92,121 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
             }
         });
 
+        if (MainActivity.userType != null) {
 
-        if (!check) {
-//            if (RestaurantList.loginType != null) {
-//                if (RestaurantList.loginType.equals("manager")) {
-//                    if (!(restaurant.getRestEmail().equals(currentUId))) {
-//                        holder.itemView.setVisibility(View.GONE);
-//                        notifyItemRemoved(position);
-//                        restaurants.remove(position);
-//                        notifyItemRangeChanged(position,restaurants.size());
-//                    }
-//                }
-//            }
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
+            if (MainActivity.userType.equals("admin")) {
 
-                    if (RestaurantList.loginType != null) {
-                        if (RestaurantList.loginType.equals("manager")) {
-                            Intent itemList = new Intent(context, ItemList.class);
-                            context.startActivity(itemList);
-                        }
-                    } else if (!currentUId.equals("smartadmin@gmail.com")) {
-                        Intent restDetailIntent = new Intent(context, RestaurantDetail.class);
-                        Bundle bundle = new Bundle();
-                        bundle.putString("restId", restaurant.getRestId());
-                        bundle.putString("seats", String.valueOf(max));
-                        bundle.putString("bundle", "detail");
-                        restDetailIntent.putExtras(bundle);
-                        context.startActivity(restDetailIntent);
-                    }
-                }
-            });
-        }
+                holder.restImageIm.setImageResource(R.drawable.rest_image);
+                holder.restNameTv.setText(restaurant.getRestName());
+                holder.restTypeTv.setText(restaurant.getRestType());
+                holder.moreOptionMenuIv.setVisibility(View.VISIBLE);
 
-        holder.restImageIm.setImageResource(R.drawable.rest_image);
-        holder.restNameTv.setText(restaurant.getRestName());
-        holder.restTypeTv.setText(restaurant.getRestType());
-        holder.seatAvailable.setText(String.valueOf(max1));
+            } else if (MainActivity.userType.equals("manager")) {
 
-        if ((currentUId.equals("smartadmin@gmail.com"))) {
-            holder.moreOptionMenuIv.setVisibility(View.VISIBLE);
-        } else {
-            holder.moreOptionMenuIv.setVisibility(View.INVISIBLE);
-            if (MainActivity.userType != null) {
-                if ((!MainActivity.userType.equals("manager"))) {
+                if(restaurant.getRestEmail().equals(currentUId)) {
+
+                    holder.restImageIm.setImageResource(R.drawable.rest_image);
+                    holder.restNameTv.setText(restaurant.getRestName());
+                    holder.restTypeTv.setText(restaurant.getRestType());
+                    holder.moreOptionMenuIv.setVisibility(View.INVISIBLE);
                     holder.seatAvailable.setVisibility(View.VISIBLE);
                     holder.tableIconIv.setVisibility(View.VISIBLE);
+                    holder.seatAvailable.setText(String.valueOf(max1));
 
                     countSeats(position, restId);
                     Log.e("position rest ", String.valueOf(position));
+                }
+                else{
+                    holder.itemView.setVisibility(View.GONE);
+                    holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(0, 0));
+                }
 
+            } else if (MainActivity.userType.equals("user")) {
+
+                holder.restImageIm.setImageResource(R.drawable.rest_image);
+                holder.restNameTv.setText(restaurant.getRestName());
+                holder.restTypeTv.setText(restaurant.getRestType());
+                holder.moreOptionMenuIv.setVisibility(View.INVISIBLE);
+                holder.seatAvailable.setVisibility(View.VISIBLE);
+                holder.tableIconIv.setVisibility(View.VISIBLE);
+                holder.seatAvailable.setText(String.valueOf(max1));
+
+                countSeats(position, restId);
+                Log.e("position rest ", String.valueOf(position));
+
+            }
+        }
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if (RestaurantList.loginType != null) {
+                    if (RestaurantList.loginType.equals("manager")) {
+                        Intent itemList = new Intent(context, ItemList.class);
+                        context.startActivity(itemList);
+                    }
+                } else if (!currentUId.equals("smartadmin@gmail.com")) {
+                    Intent restDetailIntent = new Intent(context, RestaurantDetail.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("restId", restaurant.getRestId());
+                    bundle.putString("seats", String.valueOf(max));
+                    bundle.putString("bundle", "detail");
+                    restDetailIntent.putExtras(bundle);
+                    context.startActivity(restDetailIntent);
                 }
             }
+        });
 
-        }
+//        if (!check) {
+//
+//            holder.restImageIm.setImageResource(R.drawable.rest_image);
+//            holder.restNameTv.setText(restaurant.getRestName());
+//            holder.restTypeTv.setText(restaurant.getRestType());
+//            holder.seatAvailable.setText(String.valueOf(max1));
+//
+////            if (RestaurantList.loginType != null) {
+////                if (RestaurantList.loginType.equals("manager")) {
+////                    if (!(restaurant.getRestEmail().equals(currentUId))) {
+////
+////                        mRecyclerView.post(new Runnable() {
+////                            @Override
+////                            public void run() {
+////                               // holder.itemView.setVisibility(View.GONE);
+////                                restaurants.remove(position);
+////                                notifyItemRemoved(position);
+////                                notifyItemRangeChanged(position,restaurants.size());
+////                                notifyItemChanged(position);
+////                            }
+////                        });
+////                    }
+////                }
+////            }
+//
+//        } else {
+//
+//            holder.restImageIm.setImageResource(R.drawable.rest_image);
+//            holder.restNameTv.setText(restaurant.getRestName());
+//            holder.restTypeTv.setText(restaurant.getRestType());
+//            holder.seatAvailable.setText(String.valueOf(max1));
+//        }
+
+//        if ((currentUId.equals("smartadmin@gmail.com"))) {
+//            holder.moreOptionMenuIv.setVisibility(View.VISIBLE);
+//        } else {
+//            holder.moreOptionMenuIv.setVisibility(View.INVISIBLE);
+//            if (MainActivity.userType != null) {
+//                if ((!MainActivity.userType.equals("manager"))) {
+//                    holder.seatAvailable.setVisibility(View.VISIBLE);
+//                    holder.tableIconIv.setVisibility(View.VISIBLE);
+//
+//                    countSeats(position, restId);
+//                    Log.e("position rest ", String.valueOf(position));
+//
+//                }
+//            }
+//
+//        }
 
         holder.moreOptionMenuIv.setOnClickListener(new View.OnClickListener() {
             @Override

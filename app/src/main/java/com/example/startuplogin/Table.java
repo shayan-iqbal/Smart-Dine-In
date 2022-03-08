@@ -8,13 +8,15 @@ public class Table implements Serializable {
     String tableStatus;
     String tableId;
     String orderId;
+    String tableTimeOut;
 
-    public Table(String tableName, int tableSeat, String tableStatus, String tableId, String orderId) {
+    public Table(String tableName, int tableSeat, String tableStatus, String tableId, String orderId, String tableTimeOut) {
         this.tableName = tableName;
         this.tableSeat = tableSeat;
         this.tableStatus = tableStatus;
         this.tableId = tableId;
         this.orderId = orderId;
+        this.tableTimeOut = tableTimeOut;
     }
 
     public Table() {
@@ -58,5 +60,13 @@ public class Table implements Serializable {
 
     public void setOrderId(String orderId) {
         this.orderId = orderId;
+    }
+
+    public String getTableTimeOut() {
+        return tableTimeOut;
+    }
+
+    public void setTableTimeOut(String tableTimeOut) {
+        this.tableTimeOut = tableTimeOut;
     }
 }

@@ -36,8 +36,13 @@ import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.RequestParams;
 import com.loopj.android.http.TextHttpResponseHandler;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,6 +79,7 @@ public class CartDetails extends AppCompatActivity {
     boolean tableStatus;
     String restId;
     private String orderId;
+    String tableTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -262,8 +268,10 @@ public class CartDetails extends AppCompatActivity {
                             tableStatus = true;
                             Log.e("Table", table.toString());
                             String tableName = table.getTableName();
+                            getTime();
                             orderReference.child(orderId).child("tableId").setValue(table.getTableId());
                             tableRef.child(table.getTableId()).child("tableStatus").setValue("Reserved");
+                            tableRef.child(table.getTableId()).child("tableTimeOut").setValue(tableTime);
                             tableRef.child(table.getTableId()).child("orderId").setValue(orderId).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
@@ -303,6 +311,23 @@ public class CartDetails extends AppCompatActivity {
 
             }
         });
+
+    }
+
+    private void getTime() {
+
+        Date netDate = new Date(); // current time from here
+        SimpleDateFormat sfd = new SimpleDateFormat("hh:mm aa", Locale.getDefault());
+        tableTime= sfd.format(netDate);
+        Calendar cal = Calendar.getInstance();
+        try {
+            cal.setTime(sfd.parse(tableTime));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        cal.add(Calendar.MINUTE, 45);
+        tableTime= sfd.format(cal.getTime());
+
 
     }
 

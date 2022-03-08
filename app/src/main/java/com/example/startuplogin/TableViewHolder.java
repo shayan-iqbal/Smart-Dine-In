@@ -16,6 +16,7 @@ public class TableViewHolder extends RecyclerView.ViewHolder {
     static Spinner tableStatusSp;
     ImageView tableDelete;
     ImageView tableOrder;
+    TextView tableTimeOut;
 
     public TableViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -25,6 +26,7 @@ public class TableViewHolder extends RecyclerView.ViewHolder {
         tableStatusSp=itemView.findViewById(R.id.tableSeatSp);
         tableDelete=itemView.findViewById(R.id.tableDelete);
         tableOrder=itemView.findViewById(R.id.viewTableOrder);
+        tableTimeOut=itemView.findViewById(R.id.tableTimeOut);
 
     }
 }

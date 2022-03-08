@@ -74,6 +74,19 @@
             android:layout_marginStart="24dp"
             android:src="@drawable/order" />
 
+        <TextView
+            android:id="@+id/tableTimeOut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_below="@+id/tableNum"
+            android:layout_marginTop="40dp"
+            android:layout_marginBottom="5dp"
+            android:text="9.00 am"
+            android:textColor="@android:color/black"
+            android:visibility="gone"
+            android:textSize="14sp" />
+
     </RelativeLayout>
 
 </androidx.cardview.widget.CardView>

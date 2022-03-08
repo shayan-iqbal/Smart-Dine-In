@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 public class RestaurantList extends AppCompatActivity implements SearchView.OnQueryTextListener, androidx.appcompat.widget.SearchView.OnQueryTextListener {
 
     ArrayList<Restaurant> restaurants;
-   static RecyclerView restListRv;
+    static RecyclerView restListRv;
     RestaurantAdapter restAdapter;
     FirebaseAuth mAuth;
     FirebaseDatabase restDatabase;
@@ -72,8 +72,10 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
     Spinner tableStatus;
     static String loginType;
     int check = 0;
-    private static final String TABLE_PATTERN = "^[T1-9]{2,3}$";
+    private static final String TABLE_PATTERN = "^[T0-9]{2,3}$";
     private boolean spinnerTouched;
+    ArrayList<String> tableNames;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,10 +91,11 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
         addTableBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                finish();
+
                 Pattern pattern;
                 Matcher matcher;
                 boolean check = true;
+
                 String name = tableNameEt.getText().toString();
 
                 if (!name.isEmpty()) {
@@ -103,16 +106,20 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
                         check = false;
                         startDialog.dismiss();
                     }
-                } else {
-                    tableNameEt.setError("Required Field");
-                    check = false;
-                    startDialog.dismiss();
+                    else if (tableNames.contains(name)) {
+
+                        tableNameEt.setError("Table Already exist");
+                        startDialog.dismiss();
+                        check = false;
+
+                    }
                 }
 
-
                 if (check) {
+                    finish();
                     String tableId = restRef.child(restId).child("Table").push().getKey();
-                    Table table = new Table(name, noOfSeats, "Free", tableId, "");
+
+                    Table table = new Table(name, noOfSeats, "Free", tableId, "", "");
                     restRef.child(restId).child("Table").child(tableId).setValue(table).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
@@ -126,7 +133,7 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
                 }
             }
         });
-       // currentUEmail = mAuth.getCurrentUser().getEmail();
+        // currentUEmail = mAuth.getCurrentUser().getEmail();
 
         restRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -285,7 +292,7 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             loginType = bundle.getString("userType");
-            Log.e("list login type ",loginType);
+            Log.e("list login type ", loginType);
             if (loginType.equals("manager")) {
                 tableGroup.setVisibility(View.VISIBLE);
                 tableListRec.setVisibility(View.VISIBLE);
@@ -357,6 +364,9 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
             public void onChildAdded(@NonNull DataSnapshot snapshot, @androidx.annotation.Nullable String previousChildName) {
                 Table table = snapshot.getValue(Table.class);
                 tableArrayList.add(table);
+                for (int i = 0; i < tableArrayList.size(); i++) {
+                    tableNames.add(tableArrayList.get(i).getTableName());
+                }
                 TableAdapter adapter = new TableAdapter(RestaurantList.this, tableArrayList);
                 tableListRec.setLayoutManager(new LinearLayoutManager(RestaurantList.this));
                 tableListRec.setAdapter(adapter);
@@ -517,6 +527,7 @@ public class RestaurantList extends AppCompatActivity implements SearchView.OnQu
         tableNameEt = findViewById(R.id.tableNameEt);
         seatSpinner = findViewById(R.id.tableSeatSpIn);
         tableSeatSp = findViewById(R.id.tableSeatSp);
+        tableNames = new ArrayList<>();
 
         if (mAuth.getCurrentUser() != null) {
             currentUId = mAuth.getCurrentUser().getUid();

@@ -60,6 +60,11 @@ public class TableAdapter extends RecyclerView.Adapter<TableViewHolder> {
 
             holder.tableNumTv.setText(table.getTableName());
             holder.tableSeatTv.setText(String.valueOf(table.getTableSeat()));
+
+            if(table.getTableTimeOut()!=null){
+                holder.tableTimeOut.setText(table.getTableTimeOut());
+            }
+
             String status = table.getTableStatus();
             if (status.equals("Free"))
                 TableViewHolder.tableStatusSp.setSelection(0);

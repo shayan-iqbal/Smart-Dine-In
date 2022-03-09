@@ -10,11 +10,12 @@ public class Restaurant {
     String restLocation;
     String restType;
     String restImage;
+    Long maxSeat;
 
     public Restaurant() {
     }
 
-    public Restaurant(String restId, String restName, String restEmail, String restPasscode, String restContact, String restBranchCode, String restLocation, String restType, String restImage) {
+    public Restaurant(String restId, String restName, String restEmail, String restPasscode, String restContact, String restBranchCode, String restLocation, String restType, String restImage, Long maxSeat) {
         this.restId = restId;
         this.restName = restName;
         this.restEmail = restEmail;
@@ -24,6 +25,7 @@ public class Restaurant {
         this.restLocation = restLocation;
         this.restType = restType;
         this.restImage = restImage;
+        this.maxSeat = maxSeat;
     }
 
     public String getRestName() {
@@ -96,5 +98,13 @@ public class Restaurant {
 
     public void setRestBranchCode(String restBranchCode) {
         this.restBranchCode = restBranchCode;
+    }
+
+    public Long getMaxSeat() {
+        return maxSeat;
+    }
+
+    public void setMaxSeat(Long maxSeat) {
+        this.maxSeat = maxSeat;
     }
 }

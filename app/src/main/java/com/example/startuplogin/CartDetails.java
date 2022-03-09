@@ -80,6 +80,8 @@ public class CartDetails extends AppCompatActivity {
     String restId;
     private String orderId;
     String tableTime;
+    DatabaseReference cartRef;
+    private String rId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,12 +117,13 @@ public class CartDetails extends AppCompatActivity {
                     dialog.dismiss();
                 }
                 if (check) {
-                    saveOrder();
-                    //submitPayment();
+                    //saveOrder();
+                    submitPayment();
                 }
             }
         });
     }
+
 
     @Override
     protected void onPause() {
@@ -152,24 +155,25 @@ public class CartDetails extends AppCompatActivity {
         finish();
     }
 
-    private void submitPayment(String orderId) {
+    private void submitPayment() {
 
         DropInRequest dropInRequest = new DropInRequest().clientToken(token);
+        //Toast.makeText(this, "Tokennn " + token, Toast.LENGTH_SHORT).show();
         startActivityForResult(dropInRequest.getIntent(this), REQUEST_CODE);
     }
 
     private void getToken() {
-        client.get("http://10.0.2.2/braintree/main.php", new TextHttpResponseHandler() {
+        client.get("http://192.168.8.102/braintree/main.php", new TextHttpResponseHandler() {
             @Override
             public void onFailure(int statusCode, cz.msebera.android.httpclient.Header[] headers, String responseString, Throwable throwable) {
-                Log.e("Failure ", responseString);
+                Log.e("Failure ",responseString);
             }
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
                 token = responseString;
-                if (token != null)
-                    dialog.dismiss();
+                dialog.dismiss();
+                Log.e("success ",responseString);
             }
         });
     }
@@ -177,20 +181,22 @@ public class CartDetails extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE) {
-
+           // Toast.makeText(this, "request", Toast.LENGTH_SHORT).show();
             if (resultCode == RESULT_OK) {
+               // Toast.makeText(this, "OK", Toast.LENGTH_SHORT).show();
                 DropInResult result = data.getParcelableExtra(DropInResult.EXTRA_DROP_IN_RESULT);
                 PaymentMethodNonce methodNonce = result.getPaymentMethodNonce();
 
                 String totalAmount = String.valueOf(total);
-                if (!totalAmount.isEmpty()) {
+                //if (!totalAmount.isEmpty()) {
 
                     RequestParams requestParams = new RequestParams();
+                   // amount = amountEt.getText().toString();
                     String nonce = methodNonce.getNonce();
                     requestParams.put("nonce", nonce);
-                    requestParams.put("amount", totalAmount);
+                    requestParams.put("amount", 200);
 
-                    client.post("http://10.0.2.2/braintree/checkout.php", requestParams, new TextHttpResponseHandler() {
+                    client.post("http://192.168.8.102/braintree/checkout.php", requestParams, new TextHttpResponseHandler() {
                         @Override
                         public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
                             Toast.makeText(CartDetails.this, responseString, Toast.LENGTH_LONG).show();
@@ -198,25 +204,14 @@ public class CartDetails extends AppCompatActivity {
 
                         @Override
                         public void onSuccess(int statusCode, Header[] headers, String responseString) {
-                            // saveOrder();
-                            Toast.makeText(CartDetails.this, "Transaction Successfull", Toast.LENGTH_LONG).show();
-                            Intent orderIntent = new Intent(CartDetails.this, OrderActivity.class);
-                            orderIntent.putExtra("userType", "user");
-                            orderIntent.putExtra("orderId", orderId);
-                            orderIntent.putExtra("restId", restId);
-
-                            orderIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            orderIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(orderIntent);
-                            finish();
-                            dialog.dismiss();
-
+                            Toast.makeText(CartDetails.this, responseString, Toast.LENGTH_LONG).show();
+                            saveOrder();
                         }
                     });
 
-                } else {
-                    Toast.makeText(this, "Please enter valid amount", Toast.LENGTH_SHORT).show();
-                }
+//                } else {
+//                    Toast.makeText(this, "Please enter valid amount", Toast.LENGTH_SHORT).show();
+//                }
             } else if (resultCode == RESULT_CANCELED) {
                 Toast.makeText(this, "Cancel", Toast.LENGTH_SHORT).show();
             } else {
@@ -226,9 +221,67 @@ public class CartDetails extends AppCompatActivity {
         }
     }
 
+//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+//        Log.e("request code ",String.valueOf(requestCode));
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if (requestCode == REQUEST_CODE) {
+//
+//            if (resultCode == RESULT_OK) {
+//                DropInResult result = data.getParcelableExtra(DropInResult.EXTRA_DROP_IN_RESULT);
+//                PaymentMethodNonce methodNonce = result.getPaymentMethodNonce();
+//
+//                String totalAmount = String.valueOf(total);
+//                if (!totalAmount.isEmpty()) {
+//
+//                    RequestParams requestParams = new RequestParams();
+//                    String nonce = methodNonce.getNonce();
+//                    requestParams.put("nonce", nonce);
+//                    requestParams.put("amount", totalAmount);
+//
+//                    client.post("http://192.168.8.102/braintree/checkout.php", requestParams, new TextHttpResponseHandler() {
+//                        @Override
+//                        public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+//                            Toast.makeText(CartDetails.this, responseString, Toast.LENGTH_LONG).show();
+//                            dialog.dismiss();
+//                            Log.e("Failure 2 ", responseString);
+//                        }
+//
+//                        @Override
+//                        public void onSuccess(int statusCode, Header[] headers, String responseString) {
+//                            // saveOrder();
+//                            Toast.makeText(CartDetails.this, "Transaction Successfull", Toast.LENGTH_LONG).show();
+//                            Intent orderIntent = new Intent(CartDetails.this, OrderActivity.class);
+//                            orderIntent.putExtra("userType", "user");
+//                            orderIntent.putExtra("orderId", orderId);
+//                            orderIntent.putExtra("restId", restId);
+//
+//                            orderIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//                            orderIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+//                            startActivity(orderIntent);
+//                            finish();
+//                            dialog.dismiss();
+//
+//                        }
+//                    });
+//
+//                } else {
+//                    Toast.makeText(this, "Please enter valid amount", Toast.LENGTH_SHORT).show();
+//                    dialog.dismiss();
+//                }
+//            } else if (resultCode == RESULT_CANCELED) {
+//                Toast.makeText(this, "Cancel", Toast.LENGTH_SHORT).show();
+//                dialog.dismiss();
+//            } else {
+//                Exception exception = (Exception) data.getSerializableExtra(DropInActivity.EXTRA_ERROR);
+//                Toast.makeText(this, "exception " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+//                dialog.dismiss();
+//            }
+//        }
+//    }
+
     private void saveOrder() {
 
-        ArrayList<Order> orders = new ArrayList<>();
+        final ArrayList<Order> orders = new ArrayList<>();
         orderId = orderReference.push().getKey();
 
         orderReference.child(orderId).setValue(cartList).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -241,6 +294,7 @@ public class CartDetails extends AppCompatActivity {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
+                               // getId(orderId);
                                 checkTable(orderId);
                             } else
                                 Toast.makeText(CartDetails.this, task.getException().getMessage(), Toast.LENGTH_SHORT).show();
@@ -254,13 +308,33 @@ public class CartDetails extends AppCompatActivity {
 
     }
 
+//    private void getId(final String orderId) {
+//
+//        cartRef.child(currentUId).addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                rId = snapshot.getValue().toString();
+//                checkTable(orderId, rId);
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//
+//            }
+//        });
+//    }
+
     private void checkTable(final String orderId) {
 
+       // tableRef = FirebaseDatabase.getInstance().getReference("Restaurant").child(rId);
+            Log.e("rIIDDDD ",tableRef.getKey());
         final int guest = Integer.parseInt(noOfGuest);
         tableRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+
                 if (snapshot.exists()) {
+
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                         Table table = dataSnapshot.getValue(Table.class);
                         Log.e("Table before", table.toString());
@@ -269,7 +343,9 @@ public class CartDetails extends AppCompatActivity {
                             Log.e("Table", table.toString());
                             String tableName = table.getTableName();
                             getTime();
+
                             orderReference.child(orderId).child("tableId").setValue(table.getTableId());
+
                             tableRef.child(table.getTableId()).child("tableStatus").setValue("Reserved");
                             tableRef.child(table.getTableId()).child("tableTimeOut").setValue(tableTime);
                             tableRef.child(table.getTableId()).child("orderId").setValue(orderId).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -277,17 +353,17 @@ public class CartDetails extends AppCompatActivity {
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()) {
                                         deleteFromCart();
-                                        submitPayment(orderId);
-//                                        Intent orderIntent = new Intent(CartDetails.this, OrderActivity.class);
-//                                        orderIntent.putExtra("userType", "user");
-//                                        orderIntent.putExtra("orderId", orderId);
-//                                        orderIntent.putExtra("restId", restId);
-//
-//                                        orderIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//                                        orderIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//                                        startActivity(orderIntent);
-//                                        finish();
-//                                        dialog.dismiss();
+                                        //          submitPayment(orderId);
+                                        Intent orderIntent = new Intent(CartDetails.this, OrderActivity.class);
+                                        orderIntent.putExtra("userType", "user");
+                                        orderIntent.putExtra("orderId", orderId);
+                                        orderIntent.putExtra("restId", restId);
+
+                                        orderIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                        orderIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                        startActivity(orderIntent);
+                                        finish();
+                                        dialog.dismiss();
 
                                     } else {
                                         dialog.dismiss();
@@ -303,7 +379,7 @@ public class CartDetails extends AppCompatActivity {
                         orderReference.child(orderId).removeValue();
                         showAlert();
                     }
-                }
+               }
             }
 
             @Override
@@ -318,7 +394,7 @@ public class CartDetails extends AppCompatActivity {
 
         Date netDate = new Date(); // current time from here
         SimpleDateFormat sfd = new SimpleDateFormat("hh:mm aa", Locale.getDefault());
-        tableTime= sfd.format(netDate);
+        tableTime = sfd.format(netDate);
         Calendar cal = Calendar.getInstance();
         try {
             cal.setTime(sfd.parse(tableTime));
@@ -326,7 +402,7 @@ public class CartDetails extends AppCompatActivity {
             e.printStackTrace();
         }
         cal.add(Calendar.MINUTE, 45);
-        tableTime= sfd.format(cal.getTime());
+        tableTime = sfd.format(cal.getTime());
 
 
     }
@@ -425,6 +501,6 @@ public class CartDetails extends AppCompatActivity {
             restRef = FirebaseDatabase.getInstance().getReference("Restaurant").child(restId).child("Order");
             tableRef = FirebaseDatabase.getInstance().getReference("Restaurant").child(restId).child("Table");
         }
-
+        cartRef = FirebaseDatabase.getInstance().getReference("Cart");
     }
 }

@@ -62,6 +62,7 @@ public class TableAdapter extends RecyclerView.Adapter<TableViewHolder> {
             holder.tableSeatTv.setText(String.valueOf(table.getTableSeat()));
 
             if(table.getTableTimeOut()!=null){
+                holder.tableTimeOut.setVisibility(View.VISIBLE);
                 holder.tableTimeOut.setText(table.getTableTimeOut());
             }
 

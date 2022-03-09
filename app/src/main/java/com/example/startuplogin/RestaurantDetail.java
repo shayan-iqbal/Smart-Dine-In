@@ -174,21 +174,23 @@ public class RestaurantDetail extends AppCompatActivity {
         restId = bundle.getString("restId");
        // restId=RestaurantAdapter.restId;
         String seat=bundle.getString("seats");
-        getRestaurantDetail(restId,seat);
+        Log.e("restaurant id ",restId);
+        getRestaurantDetail(restId);
     }
 
-    private void getRestaurantDetail(String restId, final String seat) {
+    private void getRestaurantDetail(String restId) {
 
         restRef.child(restId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String name = snapshot.child("restName").getValue().toString();
                 String type = snapshot.child("restType").getValue().toString();
+                Long seat = snapshot.child("maxSeat").getValue(Long.class);
                 //String tableCount = snapshot.child("restTableCount").getValue().toString();
                 Log.e("name ", name);
                 restNameTv.setText(name);
                 restTypeTv.setText(type);
-                tableSeat.setText(seat);
+                tableSeat.setText(String.valueOf(seat));
             }
 
             @Override

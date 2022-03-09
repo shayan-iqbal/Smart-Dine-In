@@ -234,10 +234,10 @@ public class AddRestaurant extends AppCompatActivity {
         String restId;
         if (!currentRestId.isEmpty()) {
             restId = currentRestId;
-            restaurant = new Restaurant(currentRestId, name, email, passcode, contact, branchCode, location, type, currentRestImage);
+            restaurant = new Restaurant(currentRestId, name, email, passcode, contact, branchCode, location, type, currentRestImage,0l);
         } else {
             restId = restRef.push().getKey();
-            restaurant = new Restaurant(restId, name, email, passcode, contact, branchCode, location, type, "");
+            restaurant = new Restaurant(restId, name, email, passcode, contact, branchCode, location, type, "",0l);
         }
         restRef.child(restId).setValue(restaurant).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override

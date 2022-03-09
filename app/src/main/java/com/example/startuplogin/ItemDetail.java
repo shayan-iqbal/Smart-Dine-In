@@ -15,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.startuplogin.DB.AppDatabase;
 import com.example.startuplogin.DB.Cart;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class ItemDetail extends AppCompatActivity {
 
@@ -32,6 +34,7 @@ public class ItemDetail extends AppCompatActivity {
     private Item item;
     FirebaseAuth mAuth;
     String currentUserId;
+    DatabaseReference cartRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +108,8 @@ public class ItemDetail extends AppCompatActivity {
 
     private void saveCartItem(Item item, String var1Value, String var2Value, String var3Value) {
 
+        cartRef.child(currentUserId).child("restId").setValue(RestaurantDetail.restId);
+
         AppDatabase db = AppDatabase.getDbInstance(this);
 
         Cart cart = new Cart(currentUserId, item.getItemName(), "", item.getItemPrice(), var1Value, var2Value, var3Value,quantityTv.getText().toString());
@@ -141,6 +146,7 @@ public class ItemDetail extends AppCompatActivity {
         var2 = findViewById(R.id.variation2);
         var3 = findViewById(R.id.variation3);
         mAuth = FirebaseAuth.getInstance();
+        cartRef= FirebaseDatabase.getInstance().getReference("Cart");
         if (mAuth.getCurrentUser() != null)
             currentUserId = mAuth.getCurrentUser().getUid();
     }

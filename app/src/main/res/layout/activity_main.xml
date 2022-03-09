@@ -93,9 +93,7 @@
         app:layout_constraintHorizontal_bias="0.45"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.472"
-        app:passwordToggleEnabled="true"
-        app:passwordToggleTint="#D7062C">
+        app:layout_constraintVertical_bias="0.472">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/loginEmail"

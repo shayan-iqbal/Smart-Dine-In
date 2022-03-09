@@ -199,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     progressDialog.dismiss();
+                    userType="admin";
                     Intent adminIntent = new Intent(MainActivity.this, RestaurantList.class);
                     startActivity(adminIntent);
                     finish();
@@ -216,6 +217,7 @@ public class MainActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     progressDialog.dismiss();
+                    userType="user";
                     Intent mapIntent = new Intent(MainActivity.this, RestaurantList.class);
                     startActivity(mapIntent);
                     finish();

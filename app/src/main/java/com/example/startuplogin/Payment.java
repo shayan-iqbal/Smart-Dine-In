@@ -76,7 +76,7 @@ public class Payment extends AppCompatActivity {
                     requestParams.put("nonce", nonce);
                     requestParams.put("amount", amount);
 
-                    client.post("http://10.0.2.2/braintree/checkout.php", requestParams, new TextHttpResponseHandler() {
+                    client.post("http://192.168.8.102/braintree/checkout.php", requestParams, new TextHttpResponseHandler() {
                         @Override
                         public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
                             Toast.makeText(Payment.this, responseString, Toast.LENGTH_LONG).show();
@@ -101,7 +101,7 @@ public class Payment extends AppCompatActivity {
     }
 
     private void getToken() {
-        client.get("http://10.0.2.2/braintree/main.php", new TextHttpResponseHandler() {
+        client.get("http://192.168.8.102/braintree/main.php", new TextHttpResponseHandler() {
             @Override
             public void onFailure(int statusCode, cz.msebera.android.httpclient.Header[] headers, String responseString, Throwable throwable) {
                 Log.e("Failure ",responseString);

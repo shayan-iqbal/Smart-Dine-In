@@ -28,6 +28,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder> {
 
@@ -132,7 +133,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
                 holder.seatAvailable.setText(String.valueOf(max1));
 
                 countSeats(position, restId);
-                Log.e("position rest ", String.valueOf(position));
+
 
             }
         }
@@ -150,7 +151,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
                     Intent restDetailIntent = new Intent(context, RestaurantDetail.class);
                     Bundle bundle = new Bundle();
                     bundle.putString("restId", restaurant.getRestId());
-                    bundle.putString("seats", String.valueOf(max));
+                    bundle.putString("seats", String.valueOf(max1));
                     bundle.putString("bundle", "detail");
                     restDetailIntent.putExtras(bundle);
                     context.startActivity(restDetailIntent);
@@ -256,7 +257,7 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
                     }
 
                 }
-                getmax(max, position);
+                getmax(max, position,restId);
             }
 
 
@@ -268,14 +269,15 @@ public class RestaurantAdapter extends RecyclerView.Adapter<RestaurantViewHolder
 
     }
 
-    private int getmax(int max, int position) {
+    private int getmax(int max, int position, String restId) {
 
         max1 = max;
         Log.e("max method ", String.valueOf(max1));
         Log.e("max method position  ", String.valueOf(position));
-        View view = RestaurantList.restListRv.findViewHolderForAdapterPosition(position).itemView;
+        View view = Objects.requireNonNull(RestaurantList.restListRv.findViewHolderForAdapterPosition(position)).itemView;
         TextView seat = view.findViewById(R.id.seatAvailable);
         seat.setText(String.valueOf(max1));
+        restRef.child(restId).child("maxSeat").setValue(max1);
         max1 = 0;
         return max1;
     }
